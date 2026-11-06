@@ -68,8 +68,11 @@
     cont() { const r = KM.importSave(store.get(AUTO) || ""); if (r.s) { UI.s = r.s; UI.title = false; UI.msgs = []; if (!UI.s.traitOffer.length) KM.offerTraits(UI.s); } else alert(r.err); },
     choose(i) {
       const s = UI.s; UI.msgs = [];
-      const r = KM.choose(s, i); push(r.msgs); if (r.go) go(r.go);
+      const r = KM.choose(s, i);
+      if (r.beat && r.go) { s.beat = { scene: s.scene, label: r.label, lines: r.beat, msgs: r.msgs, go: r.go }; return; }
+      push(r.msgs); if (r.go) go(r.go);
     },
+    beatGo() { const s = UI.s, b = s.beat; s.beat = null; UI.msgs = []; if (b) go(b.go); },
     fightScene() { const sc = KM.SCENES[UI.s.scene]; UI.msgs = []; startFight(sc.fight, { from: "scene" }); },
     special(kind, arg) {
       const s = UI.s, sc = KM.SCENES[s.scene];
@@ -140,7 +143,8 @@
     if (UI.s && !UI.title) save();
     render();
     const keep = ["alloc", "target", "reroll", "mapSel", "sellMode"].includes(a) || (a === "special" && (x === "trait" || x === "pick"));
-    if (!keep) window.scrollTo(0, 0);
+    const bt = a === "choose" && document.getElementById("beat");
+    if (bt) bt.scrollIntoView({ block: "start" }); else if (!keep) window.scrollTo(0, 0);
   });
   document.addEventListener("change", (e) => { if (e.target.id === "impf") A.importFile(e); });
 
@@ -170,6 +174,11 @@
     const s = UI.s, sc = KM.SCENES[s.scene];
     if (!sc) return '<div class="scene solo">Không tìm thấy cảnh.</div>';
     let h = stage(sc.place, sc.time, sc.cast, TIME_LABEL[sc.time] || "") + '<div class="scene"><p class="chap">' + esc(sc.chapter) + "</p><h2>" + esc(sc.title) + '</h2><div class="text">' + sc.text.map(line).join("") + "</div>" + msgsBox(UI.msgs);
+    if (s.beat && s.beat.scene === s.scene) {
+      const b = s.beat;
+      return h + '<div class="beat" id="beat"><p class="label">Shen chọn</p><p class="picked">' + esc(b.label) + '</p><div class="text">' + b.lines.map(line).join("") + "</div>" + msgsBox(b.msgs) +
+        '<div class="choices"><button class="primary" data-a="beatGo">Tiếp tục</button></div></div></div>';
+    }
     if (sc.special === "traits") h += traitsView();
     else if (sc.special === "interview") h += interviewView();
     else if (sc.special === "art") h += artView();

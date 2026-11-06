@@ -206,3 +206,7 @@ body.fighting #hud .hud-bars, body.fighting #hud .exp, body.fighting #hud .hud-m
 
 #tabs[hidden], #dock[hidden] { display: none }
 .cf-over { flex: 1 1 auto; min-height: 46px } .cf-me { flex: none }
+
+/* Diễn biến sau lựa chọn */
+.beat { margin-top: 14px; border-top: 1px dashed #b8332c88; padding-top: 12px; animation: rise .35s ease; scroll-margin-top: 120px }
+.beat .picked { font-weight: 700; margin: 0 0 8px; padding-left: 10px; border-left: 3px solid var(--seal) }

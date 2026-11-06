@@ -1,7 +1,7 @@
 /* Kiểm thử: công thức + bot chơi thử tự động qua Mở đầu, Arc 1, Arc 2.
    Chạy: node tests/engine.test.js [số_lượt] */
 const path = require("path");
-["data", "skills", "engine", "combat", "story_a1", "story_a2", "hub", "quests"].forEach((f) => require(path.join(__dirname, "../js/" + f + ".js")));
+["data", "skills", "engine", "combat", "story_a1", "story_a2", "story_beats", "hub", "quests"].forEach((f) => require(path.join(__dirname, "../js/" + f + ".js")));
 const KM = globalThis.KM;
 let fails = 0;
 const eq = (a, b, m) => { if (a !== b) { fails++; console.log("✗ " + m + ": " + a + " ≠ " + b); } };

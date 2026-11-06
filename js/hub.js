@@ -44,13 +44,14 @@
     const sc = KM.SCENES[s.scene], c = KM.visibleChoices(s, sc)[idx];
     if (!c || !KM.reqOk(s, c.req)) return { msgs: ["Chưa đủ điều kiện."] };
     const msgs = [];
-    let go = c.go;
+    let go = c.go, beat = c.r || null;
     if (c.check) {
       let b = 0; if (c.check.bonusTrait) for (const t in c.check.bonusTrait) if (KM.hasTrait(s, t)) b += c.check.bonusTrait[t];
       const r = KM.check(s, c.check.stat, c.check.dc, b); msgs.push(r.line); if (!r.ok) go = c.fail;
+      beat = (r.ok ? c.rOk : c.rFail) || beat;
     }
     msgs.push(...KM.applyX(s, c.eff, s.scene + ":" + idx));
-    return { msgs, go };
+    return { msgs, go, beat, label: c.t };
   };
 
   /* ---------------- Sự kiện tự kích hoạt khi vào khu tự do ---------------- */
