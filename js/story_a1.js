@@ -31,7 +31,7 @@
         "[Thân thể Tuyệt Mạch: Lực, Thân Pháp, Căn Cốt ×1.2. Không có Nội Lực. Tài nguyên thay thế: Khí Huyết.]",
         "[Khai mở Mạch Ẩn: một kênh duy nhất dành cho võ công do chính ký chủ sáng tạo. Mạch Ẩn sẽ thành hình theo cách ký chủ chiến đấu.]",
         "[Hồi phục khẩn cấp: 100% HP. Chỉ một lần.]",
-        "[Vui lòng chọn 2 Đặc tính. Lựa chọn không thể thay đổi.]",
+        "[Chọn lần lượt 2 Đặc tính, từng cái một. Mỗi lần chọn xong, Hệ Thống xáo bộ mới. Đã chọn thì không thể thay đổi.]",
       ],
       onEnter: { heal: 1, flag: "system" },
       special: "traits", go: "p_tut" },

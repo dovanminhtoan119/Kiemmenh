@@ -175,7 +175,7 @@ function botRun(seed, verbose) {
     if (s.scene === (botRun.endAt || "a9_post")) { log.push("END Lv" + s.level + " " + s.rank + " day " + s.day); break; }
     if (/^a\d_end$|_end_(fame|hide|lost|quiet|wanted)$/.test(s.scene) && !log.includes("@" + s.scene)) log.push("@" + s.scene + " Lv" + s.level + " " + s.rank + " d" + s.day);
     let go = null;
-    if (sc.special === "traits") { KM.offerTraits(s); KM.pickTraits(s, s.traitOffer.slice(0, 2)); go = sc.go; }
+    if (sc.special === "traits") { KM.offerTraits(s); while (KM.pickTrait(s, s.traitOffer[0]) === false); go = sc.go; }
     else if (sc.special === "interview") { KM.INTERVIEW.forEach((q, i) => KM.answerInterview(s, i, Math.floor(rnd() * q.a.length))); go = sc.go; }
     else if (sc.special === "art") { KM.setOwnArt(s, KM.suggestArts(s)[0]); go = sc.go; }
     else if (sc.special === "class") { const ks = Object.keys(KM.CLASSES); const k = ks[seed % ks.length]; KM.setClass(s, k); go = sc.go; }

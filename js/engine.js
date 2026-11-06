@@ -602,14 +602,26 @@
 })(typeof window !== "undefined" ? window : globalThis);
 (function (G) {
   const KM = G.KM;
-  /* ---------------- Đặc tính khởi đầu: 6 lựa chọn ngẫu nhiên, 1 lần xáo lại ---------------- */
+  /* ---------------- Đặc tính khởi đầu: chọn từng cái một ----------------
+     Mỗi lượt hiện 6 đặc tính ngẫu nhiên (chưa có), chọn 1; hệ thống xáo bộ mới cho lượt sau.
+     Mỗi lượt được xáo lại 1 lần. */
+  KM.TRAIT_PICKS = 2;
   KM.offerTraits = function (s) {
-    const pool = Object.keys(KM.TRAITS).filter((k) => !KM.TRAITS[k].rare), out = [];
-    while (out.length < 6) { const k = pool[Math.floor(KM.rand(s) * pool.length)]; if (!out.includes(k)) out.push(k); }
-    const r = KM.d100(s); if (r <= 5) out[5] = "kiem_ma";
+    const have = s.traitPick || [];
+    const pool = Object.keys(KM.TRAITS).filter((k) => !KM.TRAITS[k].rare && !have.includes(k)), out = [];
+    while (out.length < 6 && out.length < pool.length) { const k = pool[Math.floor(KM.rand(s) * pool.length)]; if (!out.includes(k)) out.push(k); }
+    const r = KM.d100(s); if (r <= 5 && !have.includes("kiem_ma")) out[out.length - 1] = "kiem_ma";
     s.traitOffer = out; return out;
   };
   KM.rerollTraits = function (s) { if (s.traitReroll <= 0) return false; s.traitReroll--; KM.offerTraits(s); return true; };
+  // Chọn một đặc tính; trả về true khi đã đủ số đặc tính
+  KM.pickTrait = function (s, id) {
+    if (!s.traitOffer.includes(id)) return null;
+    s.traitPick = (s.traitPick || []).concat(id);
+    if (s.traitPick.length < KM.TRAIT_PICKS) { s.traitReroll = 1; KM.offerTraits(s); return false; }
+    s.traits = s.traitPick.slice(); delete s.traitPick; s.traitOffer = [];
+    const d = KM.recalc(s, false); s.cur.hp = d.maxHP; s.cur.kh = d.maxKH; s.cur.sta = d.maxSTA; return true;
+  };
   KM.pickTraits = function (s, ids) {
     if (ids.length !== 2 || !ids.every((i) => s.traitOffer.includes(i))) return false;
     s.traits = ids.slice(); const d = KM.recalc(s, false); s.cur.hp = d.maxHP; s.cur.kh = d.maxKH; s.cur.sta = d.maxSTA; return true;

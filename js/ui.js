@@ -77,9 +77,16 @@
     fightScene() { const sc = KM.SCENES[UI.s.scene]; UI.msgs = []; startFight(sc.fight, { from: "scene" }); },
     special(kind, arg) {
       const s = UI.s, sc = KM.SCENES[s.scene];
-      if (kind === "trait") { const i = UI.sel.indexOf(arg); if (i >= 0) UI.sel.splice(i, 1); else if (UI.sel.length < 2) UI.sel.push(arg); return; }
+      if (kind === "trait") { UI.sel = UI.sel[0] === arg ? [] : [arg]; return; }
       if (kind === "reroll") { if (KM.rerollTraits(s)) UI.sel = []; return; }
-      if (kind === "traitsOk") { if (KM.pickTraits(s, UI.sel)) { UI.msgs = ["Đặc tính: " + UI.sel.map((t) => KM.TRAITS[t].name).join(", ") + "."]; UI.sel = []; go(sc.go); } return; }
+      if (kind === "traitsOk") {
+        const id = UI.sel[0]; if (!id) return;
+        const r = KM.pickTrait(s, id); if (r === null) return;
+        UI.sel = [];
+        if (r) { UI.msgs = ["Đặc tính: " + s.traits.map((t) => KM.TRAITS[t].name).join(", ") + "."]; go(sc.go); }
+        else UI.msgs = ["Đã chọn " + KM.TRAITS[id].name + ". Hệ Thống xáo lại bộ đặc tính mới cho lượt tiếp theo."];
+        return;
+      }
       if (kind === "answer") { KM.answerInterview(s, UI.iq, arg); UI.iq++; if (UI.iq >= KM.INTERVIEW.length) { UI.iq = 0; UI.msgs = []; go(sc.go); } return; }
       if (kind === "pick") { UI.pick = arg; return; }
       if (kind === "artOk") { UI.msgs = KM.setOwnArt(s, UI.pick); UI.pick = null; go(sc.go); return; }
@@ -199,10 +206,11 @@
   function traitsView() {
     const s = UI.s;
     if (!s.traitOffer.length) KM.offerTraits(s);
-    return '<div class="panel"><p class="label">Chọn 2 đặc tính (' + UI.sel.length + '/2)</p><div class="cards">' + s.traitOffer.map((k) => {
+    const got = s.traitPick || [], n = got.length + 1;
+    return '<div class="panel"><p class="label">Chọn đặc tính · lượt ' + n + "/" + KM.TRAIT_PICKS + "</p>" + (got.length ? '<p class="sys">Đã chọn: ' + got.map((k) => esc(KM.TRAITS[k].name)).join(", ") + ". Bộ dưới đây là bộ mới vừa xáo.</p>" : '<p class="sys">Chọn một đặc tính. Sau đó Hệ Thống sẽ xáo bộ mới để chọn cái tiếp theo.</p>') + '<div class="cards">' + s.traitOffer.map((k) => {
       const t = KM.TRAITS[k];
       return '<button class="card' + (UI.sel.includes(k) ? " on" : "") + '" data-a="special" data-x="trait" data-y="' + k + '"><span class="nm">' + esc(t.name) + (t.rare ? ' <i class="q q4">Hiếm</i>' : "") + "</span><span>" + esc(t.desc) + "</span><small>Đánh đổi: " + esc(t.cost) + "</small></button>";
-    }).join("") + '</div><div class="row" style="margin-top:10px"><button class="primary" data-a="special" data-x="traitsOk"' + (UI.sel.length === 2 ? "" : " disabled") + '>Xác nhận</button><button class="ghost" data-a="special" data-x="reroll"' + (s.traitReroll > 0 ? "" : " disabled") + ">Xáo lại (còn " + s.traitReroll + ")</button></div></div>";
+    }).join("") + '</div><div class="row" style="margin-top:10px"><button class="primary" data-a="special" data-x="traitsOk"' + (UI.sel.length === 1 ? "" : " disabled") + ">" + (n < KM.TRAIT_PICKS ? "Chọn và xáo lượt tiếp" : "Chọn đặc tính cuối") + "</button>" + '<button class="ghost" data-a="special" data-x="reroll"' + (s.traitReroll > 0 ? "" : " disabled") + ">Xáo lại (còn " + s.traitReroll + ")</button></div></div>";
   }
   function interviewView() {
     const q = KM.INTERVIEW[UI.iq];
