@@ -72,6 +72,16 @@ function fight(s, foes, opts) {
   }
   return c;
 }
+function traitTests() {
+  const s = KM.newGame(); const d0 = KM.derived(s); s.traits = ["truong_sinh", "sat_than"]; const d = KM.derived(s);
+  ok(d.maxHP === Math.floor(d0.maxHP * 1.25), "Trường Sinh Thể: HP ×1.25");
+  ok(Math.abs(d.crit - (d0.crit + 8)) < 0.01 && Math.abs(d.critDmg - (d0.critDmg + 0.3)) < 0.01, "Sát Thần Nhãn: chí mạng +8, +0.3");
+  s.traits = ["ngo_tinh"]; ok(KM.traitProd(s, "expMul") === 1.25, "Ngộ Tính: EXP ×1.25");
+  const pool = Object.keys(KM.TRAITS).filter((k) => !KM.TRAITS[k].rare);
+  ok(pool.length >= 40, "Có ít nhất 40 đặc tính thường (" + pool.length + ")");
+  ["kiem", "dao", "con", "thuong", "quyen"].forEach((w) => ok(pool.some((k) => KM.TRAITS[k].wmul && KM.TRAITS[k].wmul[w] >= 1.5), "Có đặc tính chuyên " + w));
+}
+traitTests();
 function botArcTravel(s, rnd) {
   const h = (f) => KM.has(s, f);
   if (!h("a2_done")) return null;

@@ -51,7 +51,7 @@
     return KM.rankUp(s);
   };
   const gainBase = KM.gainExp;
-  KM.gainExp = function (s, n) { const m = gainBase(s, n); if (!s._breaking) { s._breaking = true; m.push(...KM.tryBreak(s)); s._breaking = false; } return m; };
+  KM.gainExp = function (s, n) { if (n > 0) n = Math.floor(n * KM.traitProd(s, "expMul")); const m = gainBase(s, n); if (!s._breaking) { s._breaking = true; m.push(...KM.tryBreak(s)); s._breaking = false; } return m; };
 
   /* ---------------- Mạch Ẩn tầng 2–5: chiêu riêng mạnh dần ---------------- */
   const skillBase = KM.skill;

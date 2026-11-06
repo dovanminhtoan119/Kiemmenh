@@ -118,10 +118,24 @@
     });
     x.watk = Math.round(x.watk * 10) / 10; x.def = Math.round(x.def * 10) / 10;
     if (KM.hasTrait(s, "kim_cuong")) x.defMul *= 1.5;
+    s.traits.forEach((t) => { const T = KM.TRAITS[t]; if (T && T.dx && T.dx.defMul) x.defMul *= T.dx.defMul; if (T && T.dx) { x.crit += T.dx.crit || 0; x.eva += T.dx.eva || 0; } });
     if (s.hidden === "tuyet_mach_kim_than") x.defMul *= 1.3;
     return x;
   };
-  KM.derived = (s) => KM.derive(KM.eff(s), s.level, KM.gearX(s));
+  KM.derived = function (s) {
+    const x = KM.gearX(s), d = KM.derive(KM.eff(s), s.level, x);
+    s.traits.forEach((t) => {
+      const T = KM.TRAITS[t] && KM.TRAITS[t].dx; if (!T) return;
+      if (T.critDmg) d.critDmg = Math.round((d.critDmg + T.critDmg) * 100) / 100;
+      if (T.hpMul) d.maxHP = Math.floor(d.maxHP * T.hpMul);
+      if (T.khMul) d.maxKH = Math.floor(d.maxKH * T.khMul);
+      if (T.staMul) d.maxSTA = Math.floor(d.maxSTA * T.staMul);
+      if (T.patkMul) d.patk = Math.round(d.patk * T.patkMul * 10) / 10;
+    });
+    d.eva = Math.max(0, d.eva);
+    return d;
+  };
+  KM.traitProd = (s, key) => s.traits.reduce((m, t) => m * ((KM.TRAITS[t] && KM.TRAITS[t][key]) || 1), 1);
   KM.recalc = function (s, fill) {
     const d = KM.derived(s);
     if (fill) { s.cur.hp = d.maxHP; s.cur.kh = d.maxKH; s.cur.sta = d.maxSTA; }

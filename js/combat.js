@@ -27,7 +27,7 @@
       if (cut !== 1) foes.forEach((f) => (f.hp = f.maxHP = Math.max(1, Math.floor(f.hp * cut))));
       const luk = KM.eff(s).LUK;
       return { foes, round: 1, log: [], hist: [], cds: {}, close: false, kt: 0, buf: { guard: 0, guardT: 0, eva: 0, evaT: 0, counter: 0, counterT: 0 },
-        poison: 0, rerollOn: false, rerolls: luk >= 100 ? 3 : luk >= 50 ? 2 : luk >= 20 ? 1 : 0, revived: false, observed: [], learned: [], opts, over: null, tIdx: 0, firstStrike: !!opts.ambush, usedKH: false };
+        poison: 0, rerollOn: false, rerolls: luk >= 100 ? 3 : luk >= 50 ? 2 : luk >= 20 ? 1 : 0, revived: false, observed: [], learned: [], opts, over: null, tIdx: 0, firstStrike: !!opts.ambush || KM.hasTrait(s, "tien_phat"), usedKH: false };
     },
     alive: (c) => c.foes.filter((f) => f.hp > 0),
     target(c) { const t = c.foes[c.tIdx]; return t && t.hp > 0 ? t : this.alive(c)[0]; },
@@ -82,15 +82,16 @@
       let atk = noi ? d.npow : d.patk;
       let m = mult * (1 + 0.15 * KM.mastery(s, o.id || "")) * (sk.lost || 1);
       if (noi) m *= KM.noiEff(s, sk);
-      if (wt === "kiem" && KM.hasTrait(s, "kiem_tam")) m *= 1.5;
-      if (wt === "dao" && KM.hasTrait(s, "dao_y")) m *= 1.5;
+      s.traits.forEach((t) => { const T = KM.TRAITS[t]; if (T && T.wmul && T.wmul[wt]) m *= T.wmul[wt]; });
+      m *= KM.traitProd(s, noi || sk.own ? "noiMul" : "ngoaiMul");
+      if (s.cur.hp < d.maxHP * 0.5) m *= KM.traitProd(s, "lowHp");
       if (KM.hasTrait(s, "ma_tinh")) m *= 1 + 0.03 * Math.floor((1 - s.cur.hp / d.maxHP) * 10);
       if (sk.rage) m *= 1 + (1 - s.cur.hp / d.maxHP);
       if (wt === "quyen" && c.kt) m *= 1 + 0.04 * c.kt;
       if (sk.kt && c.kt) { m *= 1 + 0.15 * c.kt; L.push("Dồn " + c.kt + " tầng Khí Thế: +" + c.kt * 15 + "%."); c.kt = 0; }
       m *= this.rangeMod(c, KM.WEAPON_TYPES[wt].range, KM.WEAPON_TYPES[t.wtype].range, wt);
       if (c.opts.road && s.horse && KM.HORSES[s.horse].mounted && wt === "thuong") m *= 1 + (s.gear.weapon && KM.ITEMS[s.gear.weapon].mounted ? KM.ITEMS[s.gear.weapon].mounted : 0.2);
-      if (c.firstStrike) { m *= KM.hasTrait(s, "anh_tu") ? 2 : 1.3; L.push("Đánh lén: ×" + (KM.hasTrait(s, "anh_tu") ? 2 : 1.3) + "."); c.firstStrike = false; }
+      if (c.firstStrike) { const amb = !!c.opts.ambush, fm = amb && KM.hasTrait(s, "anh_tu") ? 2 : 1.3; m *= fm; L.push((amb ? "Đánh lén" : "Tiên Phát Chế Nhân") + ": ×" + fm + "."); c.firstStrike = false; }
       let pierce = (sk.pierce || 0) + (noi ? 0.3 : 0) + (wt === "dao" ? 0.2 : 0) + (s.gear.weapon && KM.ITEMS[s.gear.weapon].pierce ? KM.ITEMS[s.gear.weapon].pierce - 0.2 : 0);
       pierce = Math.min(0.9, pierce);
       const def = t.d.pdef * (1 - pierce);
@@ -233,6 +234,7 @@
       const v = this.variance(s);
       let dmg = Math.max(1, atk * m - def) * (cr.ok ? f.d.critDmg : 1) * v.m;
       if (!noi && KM.hasTrait(s, "thiet_cot")) dmg *= 0.9;
+      dmg *= KM.traitProd(s, "taken");
       if (c.buf.guardT > 0) dmg *= 1 - c.buf.guard;
       dmg = Math.max(1, Math.floor(dmg));
       s.cur.hp -= dmg;
@@ -260,6 +262,10 @@
       if (!fled && !this.checkEnd(s, c)) {
         if (c.poison > 0) { const p = Math.floor(d.maxHP * 0.04); s.cur.hp -= p; c.poison--; L.push("Độc phát tác: −" + p + " HP."); if (s.cur.hp <= 0 && KM.hasTrait(s, "bat_tu") && !c.revived) { c.revived = true; s.cur.hp = Math.floor(d.maxHP * 0.2); L.push("Bất Tử Thân: Shen gượng dậy với " + s.cur.hp + " HP!"); } }
         s.cur.sta = Math.min(d.maxSTA, s.cur.sta + 5);
+        s.traits.forEach((t) => { const g = KM.TRAITS[t] && KM.TRAITS[t].regen; if (!g) return;
+          if (g.hp && s.cur.hp > 0) { const b = s.cur.hp; s.cur.hp = Math.min(d.maxHP, s.cur.hp + Math.floor(d.maxHP * g.hp)); if (s.cur.hp > b) L.push(KM.TRAITS[t].name + ": +" + (s.cur.hp - b) + " HP."); }
+          if (g.kh) s.cur.kh = Math.min(d.maxKH, s.cur.kh + Math.floor(d.maxKH * g.kh));
+          if (g.sta) s.cur.sta = Math.min(d.maxSTA, s.cur.sta + Math.floor(d.maxSTA * g.sta)); });
         if (!c.usedKH) s.cur.kh = Math.min(d.maxKH, s.cur.kh + Math.floor(d.maxKH * 0.1));
         for (const k in c.cds) if (c.cds[k] > 0) c.cds[k]--;
         c.foes.forEach((f) => { for (const k in f.cds) if (f.cds[k] > 0) f.cds[k]--; if (f.weak && --f.weak.t <= 0) f.weak = null; });
