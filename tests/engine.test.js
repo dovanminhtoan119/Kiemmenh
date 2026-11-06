@@ -1,7 +1,7 @@
 /* Kiểm thử: công thức + bot chơi thử tự động qua Mở đầu, Arc 1, Arc 2.
    Chạy: node tests/engine.test.js [số_lượt] */
 const path = require("path");
-["data", "skills", "engine", "combat", "story_a1", "story_a2", "story_beats", "hub", "quests"].forEach((f) => require(path.join(__dirname, "../js/" + f + ".js")));
+["data", "data2", "skills", "skills2", "engine", "combat", "story_a1", "story_a2", "story_beats", "hub", "hub2", "story_a3", "story_a4_5", "story_a6_7", "story_a8_9", "quests", "quests2"].forEach((f) => require(path.join(__dirname, "../js/" + f + ".js")));
 const KM = globalThis.KM;
 let fails = 0;
 const eq = (a, b, m) => { if (a !== b) { fails++; console.log("✗ " + m + ": " + a + " ≠ " + b); } };
@@ -28,7 +28,7 @@ const ok = (c, m) => { if (!c) { fails++; console.log("✗ " + m); } };
   // cảnh liên kết đầy đủ
   for (const id in KM.SCENES) {
     const sc = KM.SCENES[id];
-    const gos = [].concat((sc.choices || []).flatMap((c) => [c.go, c.fail]), sc.go, sc.fight ? [sc.fight.win, sc.fight.lose] : []).filter((g) => g && !g.startsWith("@"));
+    const gos = [].concat((typeof sc.choices === "function" ? [] : sc.choices || []).flatMap((c) => [c.go, c.fail]), sc.go, sc.fight ? [sc.fight.win, sc.fight.lose] : []).filter((g) => g && !g.startsWith("@"));
     gos.forEach((g) => ok(KM.SCENES[g], "cảnh " + id + " trỏ tới " + g + " không tồn tại"));
     if (sc.fight) sc.fight.foes.forEach((f) => ok(KM.ENEMIES[f], "kẻ địch " + f));
   }
@@ -62,8 +62,8 @@ function fight(s, foes, opts) {
   while (!c.over && guard++ < 80) {
     const d = KM.derived(s);
     if (s.cur.hp < d.maxHP * 0.35) {
-      const it = ["dai_hoan", "kim_sang"].find((x) => s.inv[x]);
-      if (it) { KM.combat.playerAct(s, c, { type: "item", id: it }); continue; }
+      const it = ["cuu_chuyen", "dai_hoan", "kim_sang"].find((x) => s.inv[x]);
+      if (it && !c.opts.noItems) { KM.combat.playerAct(s, c, { type: "item", id: it }); continue; }
     }
     if (c.rerolls) c.rerollOn = true;
     const rd = KM.combat.ready(s, c).filter((x) => x.ok && x.id !== "chiu_don" && x.sk.mult);
@@ -71,6 +71,49 @@ function fight(s, foes, opts) {
     KM.combat.playerAct(s, c, { type: "skill", id: rd.length ? rd[0].id : "danh_thuong" });
   }
   return c;
+}
+function botArcTravel(s, rnd) {
+  const h = (f) => KM.has(s, f);
+  if (!h("a2_done")) return null;
+  if (!h("a3_start")) return "kim_lang";
+  if (!h("a3_done")) return h("a3_out") && !h("brk_C") ? "ngoai_o" : "kim_lang";
+  if (!h("a4_start")) return "van_thuy";
+  if (!h("a4_done")) return "van_thuy";
+  if (!h("a5_start")) return "luong_chau";
+  if (!h("a5_done")) return null;
+  if (!h("a6_start")) return "tuyet_linh";
+  if (!h("a6_done")) return h("realm_open") && !h("realm_closed") ? "kiem_trung" : "tuyet_linh";
+  if (!h("a7_start")) return "kim_lang";
+  if (!h("a7_done")) {
+    const d = KM.since(s, "a7");
+    if (d < 3 && s.place === "kim_lang") return KM.travelDays(s, "kim_lang", "lac_ha") <= 3 - d ? "lac_ha" : "nga_mi";
+    if (d >= 3 && d < 5 && !h("a7_ev_nm")) return "nga_mi";
+    const fr = ["nga_mi", "vo_dang", "lac_ha"].filter((k) => !h("fall_" + k));
+    if (!fr.length) return null;
+    const low = fr.sort((a, b) => s.front[a] - s.front[b])[0];
+    if (!fr.includes(s.place)) return low;
+    return s.front[low] < 35 && s.front[s.place] > 60 ? low : null;
+  }
+  if (!h("a8_start")) return "kim_lang";
+  if (!h("a8_done")) return "kim_lang";
+  if (!h("a9_start")) return "thien_son";
+  return null;
+}
+function botShop(s, H) {
+  const shops = [];
+  KM.hubLocs(s, H).forEach((l) => { if (!KM.locOpen(s, l)) return; KM.locActions(s, l).forEach((a) => { if (a.cost === 0 && /Xem hàng|Binh khí|Đồng Nhân|Kho|Thương hội|Chợ biên|Binh khố|Lò rèn băng|Quân nhu|Trân Bảo|Lều buôn|Hiệu thuốc|Tiệm binh khí/.test(a.t)) { try { const r = a.run(s); if (r.shop) shops.push(r.shop); } catch (e) {} } }); });
+  shops.forEach((sh) => {
+    const stock = KM.shopStock(s, sh);
+    stock.forEach((e) => {
+      const it = KM.ITEMS[e.id]; if (!it) return;
+      if (it.slot && it.req && KM.meets(s, it.req) && e.price < s.money * 0.7) { const c = KM.compareEquip(s, e.id); if (c && c.better && !s.inv[e.id]) KM.buy(s, sh, e); }
+      if ((e.id === "dai_hoan" || e.id === "cuu_chuyen") && (s.inv[e.id] || 0) < 4 && e.price * 3 < s.money * 0.3) KM.buy(s, sh, e);
+      if (e.id === "kim_sang" && (s.inv.kim_sang || 0) < 4 && s.money > 1000) KM.buy(s, sh, e);
+      if (e.id === "tui_nuoc" && (s.inv.tui_nuoc || 0) < 7) { while ((s.inv.tui_nuoc || 0) < 7 && s.money > 100) KM.buy(s, sh, e); }
+      if (e.id === "nu_nhi_hong" && KM.has(s, "a8_start") && (s.inv.nu_nhi_hong || 0) < 3) KM.buy(s, sh, e);
+      if (e.id === "giai_doc" && s.side.vt_thuoc && s.side.vt_thuoc.st === "active" && (s.inv.giai_doc || 0) < 3) KM.buy(s, sh, e);
+    });
+  });
 }
 function allocate(s) {
   const pr = s.cls ? (s.hidden ? KM.HIDDEN_CLASSES[s.hidden].prio : KM.CLASSES[s.cls].prio) : ["STR", "VIT"];
@@ -89,7 +132,7 @@ function botRun(seed, verbose) {
   let steps = 0, scene = "p_rain";
   KM.enterScene(s, scene);
   const rnd = () => KM.rand(s); const skip = new Set();
-  while (steps++ < 3000) {
+  while (steps++ < 40000) {
     allocate(s);
     if (s.hub) {
       const trig = KM.hubTrigger(s); if (trig) { s.hub = null; KM.enterScene(s, trig); continue; }
@@ -101,31 +144,36 @@ function botRun(seed, verbose) {
       KM.hubLocs(s, H).forEach((l) => { const open = KM.locOpen(s, l); KM.locActions(s, l).forEach((a, i) => { if ((open || a.quest || /Nghỉ|Thuê|Trọ|Ngủ/.test(a.t)) && !a.disabled && !skip.has(s.day + ":" + a.t)) acts.push({ l, a, i }); }); });
       const find = (re) => acts.find((x) => re.test(x.a.t));
       let pickA = null;
-      if (s.slot === 3 || s.cur.hp < d.maxHP * 0.4) pickA = find(/Nghỉ đêm|Thuê phòng|Nghỉ ở/);
+      if (s.slot === 3 || s.cur.hp < d.maxHP * 0.4) pickA = find(/Nghỉ|Thuê phòng|Ngủ/);
       if (!pickA && s.place === "thanh_van") pickA = find(/Bày chứng cứ/) && ((s.clues.length >= 2 && s.level >= 8) || s.day >= 7) ? find(/Bày chứng cứ/) : null;
-      const prefer = [/^Trả việc|^Giao đồ/, /^Nhận việc/, /Giao hàng/, /Tấn công Hắc Phong/, /Rình ở gốc/, /Lẻn vào/, /Đi về phía thác/, /Lang thang/, /Ứng tuyển/, /Ra bến/, /Dò thám/, /Mua tin/, /Tấn công thủy trại/, /Uống rượu/, /Trò chuyện/, /Gặp Tô/];
+      const go2b = (p) => { KM.startTravel(s, p); while (s.travel) { const st = KM.travelStep(s); if (st.fight) { const c = fight(s, st.fight, { road: true }); KM.combat.finish(s, c); if (s.pendingRank) KM.claimRank(s, 0); } } };
+      const arcGo = botArcTravel(s, rnd);
+      if (arcGo && arcGo !== s.place && !s.travel) { go2b(arcGo); continue; }
+      botShop(s, H);
+      const prefer = [/^Trả việc|^Giao đồ/, /^▶/, /Mua 3 túi nước/, /^Nhận việc/, /Giao hàng/, /Tấn công Hắc Phong/, /Rình ở gốc/, /Lẻn vào/, /Đi về phía thác/, /Lang thang/, /Ứng tuyển/, /Ra bến/, /Dò thám/, /Mua tin/, /Tấn công thủy trại/, /Uống rượu/, /Trò chuyện/, /Gặp Tô/];
       if (!pickA) for (const re of prefer) { const x = find(re); if (x && !(re.source.includes("Tấn công thủy") && s.level < 15)) { pickA = x; break; } }
       if (s.tieuRun && s.place === "lac_ha" && !pickA) { KM.startTravel(s, "phong_lam"); while (s.travel) { const st = KM.travelStep(s); if (st.fight) { const c = fight(s, st.fight, { road: true }); KM.combat.finish(s, c); } } continue; }
       if (s.place === "phong_lam" && !s.tieuRun) { KM.startTravel(s, "lac_ha"); while (s.travel) { const st = KM.travelStep(s); if (st.fight) { const c = fight(s, st.fight, { road: true }); KM.combat.finish(s, c); } } continue; }
       if (s.quests.q_cuu_phuong && s.quests.q_cuu_phuong.st === "active" && s.place === "lac_ha") { KM.startTravel(s, "hac_phong"); while (s.travel) { const st = KM.travelStep(s); if (st.fight) { const c = fight(s, st.fight, { road: true }); KM.combat.finish(s, c); } } continue; }
       if (s.place === "hac_phong" && !(s.quests.q_cuu_phuong && s.quests.q_cuu_phuong.st === "active")) { KM.startTravel(s, "lac_ha"); while (s.travel) KM.travelStep(s); continue; }
       const go2 = (p) => { KM.startTravel(s, p); while (s.travel) { const st = KM.travelStep(s); if (st.fight) { const c = fight(s, st.fight, { road: true }); KM.combat.finish(s, c); } } };
-      if (!pickA && KM.has(s, "a1_done") && KM.has(s, "arrived_lac_ha") && rnd() < 0.03) { const opts = KM.mapDests(s).filter((d) => !d.lock); if (opts.length) { go2(opts[Math.floor(rnd() * opts.length)].p); continue; } }
-      if (s.place !== "lac_ha" && KM.has(s, "arrived_lac_ha") && rnd() < 0.25 && !(s.place === "hac_phong" && s.quests.q_cuu_phuong && s.quests.q_cuu_phuong.st === "active") && !(s.place === "phong_lam" && s.tieuRun)) { go2("lac_ha"); continue; }
+      if (!pickA && KM.has(s, "a1_done") && !KM.has(s, "a2_done") && KM.has(s, "arrived_lac_ha") && rnd() < 0.03) { const opts = KM.mapDests(s).filter((d) => !d.lock); if (opts.length) { go2(opts[Math.floor(rnd() * opts.length)].p); continue; } }
+      if (!KM.has(s, "a2_done") && s.place !== "lac_ha" && KM.has(s, "arrived_lac_ha") && rnd() < 0.25 && !(s.place === "hac_phong" && s.quests.q_cuu_phuong && s.quests.q_cuu_phuong.st === "active") && !(s.place === "phong_lam" && s.tieuRun)) { go2("lac_ha"); continue; }
       if (!pickA && s.place === "lac_ha" && !KM.has(s, "tieu_su_job") && find(/Nhận chuyến tiêu/) && s.horse) pickA = find(/Nhận chuyến tiêu/);
-      if (!pickA) { const pool = acts.filter((x) => (s.rank !== 'E' || !/sâu vào|Đấu với/.test(x.a.t)) && /Săn|Tỉ thí|Đấu với|Luyện|áp tiêu ngắn|Làm việc|kéo lưới/.test(x.a.t) && (!x.a.req || KM.reqOk(s, x.a.req))); pickA = pool[Math.floor(rnd() * pool.length)] || find(/Nghỉ đêm|Thuê phòng|Nghỉ ở/); }
+      if (!pickA) { const pool = acts.filter((x) => (s.rank !== 'E' || !/sâu vào|Đấu với/.test(x.a.t)) && /Săn|Tỉ thí|Đấu với|Đấu tập|Luyện|áp tiêu ngắn|Làm việc|kéo lưới|Dẹp|Đi tuần|Truy đuổi|Đập kiếm|Đánh Thiết|Diệt|Chặn phản/.test(x.a.t) && (!x.a.req || KM.reqOk(s, x.a.req))); pickA = pool[Math.floor(rnd() * pool.length)] || find(/Nghỉ|Thuê phòng|Ngủ/); }
       // mua thuốc nếu ít
       if (s.money > 2000 && (s.inv.kim_sang || 0) < 3) { const st = KM.shopStock(s, s.place === "thanh_van" ? "tap_hoa" : "hieu_thuoc").find((e) => e.id === "kim_sang"); if (st && (s.place === "thanh_van" ? s.slot <= 1 : true)) KM.buy(s, null, st); }
       if (s.place === "lac_ha" && s.cls && s.level >= 10 && !s.skills.includes(KM.CLASSES[s.cls].s2) && s.money >= 3000) KM.buy(s, "thu_quan", KM.shopStock(s, "thu_quan")[0]);
       const res = KM.hubAct(s, pickA.l.id, pickA.i);
       if (res.free || (!res.scene && !res.fight && /Không|chưa|đã/.test(res.msgs[0] || "") && !/Nghỉ|Thuê/.test(pickA.a.t))) skip.add(s.day + ":" + pickA.a.t);
-      if (res.scene) { s.hub = null; KM.enterScene(s, res.scene); continue; }
+      if (res.scene) { if (/^▶/.test(pickA.a.t)) skip.add(s.day + ":" + pickA.a.t); s.hub = null; KM.enterScene(s, res.scene); continue; }
       if (res.fight) { const o = res.fight.opts || {}; const c = fight(s, res.fight.foes, o); const won = c.over === "win"; KM.combat.finish(s, c); if (s.pendingRank) KM.claimRank(s, 0); if (res.fight.after) res.fight.after(s, won); if (/ho_du|tieu_dau|vo_si/.test(res.fight.foes.join())) log.push((won ? "W " : "L ") + res.fight.foes.join("+") + " Lv" + s.level + " d" + s.day); }
       continue;
     }
     const sc = KM.SCENES[s.scene];
     if (!sc) { log.push("missing scene " + s.scene); break; }
-    if (s.scene === "a2_end") { log.push("END Lv" + s.level + " " + s.rank + " day " + s.day); break; }
+    if (s.scene === (botRun.endAt || "a9_post")) { log.push("END Lv" + s.level + " " + s.rank + " day " + s.day); break; }
+    if (/^a\d_end$|_end_(fame|hide|lost|quiet|wanted)$/.test(s.scene) && !log.includes("@" + s.scene)) log.push("@" + s.scene + " Lv" + s.level + " " + s.rank + " d" + s.day);
     let go = null;
     if (sc.special === "traits") { KM.offerTraits(s); KM.pickTraits(s, s.traitOffer.slice(0, 2)); go = sc.go; }
     else if (sc.special === "interview") { KM.INTERVIEW.forEach((q, i) => KM.answerInterview(s, i, Math.floor(rnd() * q.a.length))); go = sc.go; }
@@ -160,7 +208,7 @@ for (let i = 0; i < N; i++) {
   L.forEach((x) => { if (/tieu_hao/.test(x)) th[x[0] === "W" ? "w" : "l"]++; if (/hac_giao/.test(x)) hg[x[0] === "W" ? "w" : "l"]++; });
   const e = L.find((x) => x.startsWith("END")); if (e) { ends++; lv.push(r.s.level); days.push(r.s.day); } else stuck.push((1000 + i) + ": " + L.slice(-2).join(" / ") + " @" + r.s.scene + " hub=" + r.s.hub + " day" + r.s.day);
 }
-console.log("Bot " + N + " lượt: tới cuối Arc 2: " + ends + "/" + N + " · Level TB " + (lv.reduce((a, b) => a + b, 0) / (lv.length || 1)).toFixed(1) + " · ngày TB " + (days.reduce((a, b) => a + b, 0) / (days.length || 1)).toFixed(1));
+console.log("Bot " + N + " lượt: tới kết thúc Arc 9: " + ends + "/" + N + " · Level TB " + (lv.reduce((a, b) => a + b, 0) / (lv.length || 1)).toFixed(1) + " · ngày TB " + (days.reduce((a, b) => a + b, 0) / (days.length || 1)).toFixed(1));
 console.log("Tiêu Hạo thắng/thua " + th.w + "/" + th.l + " · Hắc Giao " + hg.w + "/" + hg.l);
 if (stuck.length) console.log("Kẹt:\n" + stuck.slice(0, 8).join("\n"));
 if (ends < N * 0.9) fails++;

@@ -21,7 +21,10 @@
       opts = Object.assign({ canFlee: true }, opts || {});
       KM.recalc(s);
       const foes = ids.map((id, i) => KM.makeFoe(id, i));
-      if (opts.foeHpMul) foes.forEach((f) => (f.hp = Math.floor(f.hp * opts.foeHpMul)));
+      let cut = opts.foeHpMul || 1;
+      if (opts.cuts) opts.cuts.forEach(([f, m]) => { if (KM.has(s, f)) cut *= m; });
+      if (opts.hurt) cut *= Math.pow(0.85, (s.hurt && s.hurt[opts.hurt]) || 0);
+      if (cut !== 1) foes.forEach((f) => (f.hp = f.maxHP = Math.max(1, Math.floor(f.hp * cut))));
       const luk = KM.eff(s).LUK;
       return { foes, round: 1, log: [], hist: [], cds: {}, close: false, kt: 0, buf: { guard: 0, guardT: 0, eva: 0, evaT: 0, counter: 0, counterT: 0 },
         poison: 0, rerollOn: false, rerolls: luk >= 100 ? 3 : luk >= 50 ? 2 : luk >= 20 ? 1 : 0, revived: false, observed: [], learned: [], opts, over: null, tIdx: 0, firstStrike: !!opts.ambush, usedKH: false };
@@ -138,6 +141,7 @@
           if (r.ok) { c.over = "flee"; return this.endRound(s, c, true); }
         }
       } else if (action.type === "item") {
+        if (c.opts.noItems) { L.push("Trận này không được dùng thuốc."); return; }
         L.push(KM.useItem(s, action.id) || "Không dùng được.");
         if (KM.ITEMS[action.id] && KM.ITEMS[action.id].cure) c.poison = 0;
       } else if (action.type === "gap") {
@@ -202,6 +206,8 @@
       const L = c.log;
       if (f.burn > 0) { const b = Math.floor(f.maxHP * 0.05); f.hp -= b; f.burn--; L.push(f.name + " bị bỏng: −" + b + " HP."); this.deaths(s, c); if (f.hp <= 0) return; }
       if (f.stun) { f.stun = 0; L.push(f.name + " còn choáng, mất lượt."); return; }
+      const E2 = KM.ENEMIES[f.id];
+      if (E2.phase2 && !f.p2 && f.hp < f.maxHP * 0.5) { f.p2 = true; f.skills = E2.phase2.skills; f.cds = {}; L.push("【Pha 2】 " + E2.phase2.line); }
       const sk = f.skills.find((x) => !(f.cds[x.name] > 0)) || { name: "Đánh thường", mult: 1.0, src: "p" };
       if (sk.cd) f.cds[sk.name] = sk.cd + 1;
       const hits = sk.hits || 1;
@@ -230,6 +236,7 @@
       if (c.buf.guardT > 0) dmg *= 1 - c.buf.guard;
       dmg = Math.max(1, Math.floor(dmg));
       s.cur.hp -= dmg;
+      if (sk.drain) { const h = Math.floor(dmg * sk.drain); f.hp = Math.min(f.maxHP, f.hp + h); L.push(f.name + " hút " + h + " HP."); }
       L.push("Chí mạng (" + f.name + "): d100 = " + cr.r + " / cần ≤ " + KM.fmtPct(f.d.crit) + (cr.ok ? " → CHÍ MẠNG" : " → thường") + " · d20 = " + v.r + " → " + f.name + " dùng " + sk.name + suf + ": −" + dmg + " HP" + (c.buf.guardT > 0 ? " (đã giảm " + c.buf.guard * 100 + "%)" : "") + ".");
       if (s.hidden === "tuyet_mach_kim_than" && c.kt < 5) c.kt++;
       if (c.buf.guardT > 0 && c.buf.counter && c.buf.counterT > 0 && !c.buf.evaT) { const dm = Math.max(1, Math.floor(d.patk * c.buf.counter - f.d.pdef)); f.hp -= dm; L.push("Phản đòn: " + dm + " sát thương lên " + f.name + "."); this.deaths(s, c); }

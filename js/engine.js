@@ -540,7 +540,7 @@
       msgs.push("Sự kiện dọc đường: d100 = " + r + " / cần ≤ 15 → " + (r <= 15 ? "có" : "bình yên"));
       if (r <= 15) {
         const k = KM.die(s, 10);
-        if (k <= 5) { fight = s.rank === "E" ? ["son_tac"] : ["cuop_duong"]; msgs.push("Một toán cướp chặn đường!"); }
+        if (k <= 5) { fight = KM.ROAD_FOES ? KM.ROAD_FOES[s.rank].slice() : s.rank === "E" ? ["son_tac"] : ["cuop_duong"]; msgs.push("Một toán cướp chặn đường!"); }
         else if (k <= 8) msgs.push("Gặp thương nhân đi ngược chiều, mua rẻ được thuốc.", ...KM.apply(s, { item: ["kim_sang", 1] }));
         else msgs.push(...(KM.rollMiniForce(s)));
       }

@@ -36,7 +36,7 @@
     if (target === "@hub" || target === "@back") { s.scene = null; s.hub = s.place; return checkHub(); }
     push(KM.enterScene(s, target));
     const sc = KM.SCENES[target];
-    if (sc && sc.special === "hub") { s.hub = sc.hub; s.scene = null; checkHub(); }
+    if (sc && sc.special === "hub" && !(sc.text && (typeof sc.text === "function" || sc.text.length))) { s.hub = sc.hub; s.scene = null; checkHub(); }
     else if (sc && sc.special === "travel") { push(KM.startTravel(s, sc.dest)); s.travelGo = sc.go; }
   }
   function checkHub() {
@@ -73,6 +73,7 @@
       push(r.msgs); if (r.go) go(r.go);
     },
     beatGo() { const s = UI.s, b = s.beat; s.beat = null; UI.msgs = []; if (b) go(b.go); },
+    enterHub() { const sc = KM.SCENES[UI.s.scene]; UI.s.hub = sc.hub; UI.s.scene = null; checkHub(); },
     fightScene() { const sc = KM.SCENES[UI.s.scene]; UI.msgs = []; startFight(sc.fight, { from: "scene" }); },
     special(kind, arg) {
       const s = UI.s, sc = KM.SCENES[s.scene];
@@ -163,7 +164,7 @@
   /* ---------------- Màn hình tiêu đề ---------------- */
   function titleView() {
     const has = !!store.get(AUTO);
-    return '<div class="stage">' + KM.background("mountain_gate", "dusk") + '</div><div class="scene title"><h1>Kiếm Mệnh</h1><p>Giang Hồ Lục · Arc 1–2</p>' +
+    return '<div class="stage">' + KM.background("mountain_gate", "dusk") + '</div><div class="scene title"><h1>Kiếm Mệnh</h1><p>Giang Hồ Lục · Arc 1–9</p>' +
       '<p class="muted">Một tạp dịch Tuyệt Mạch, một Hệ Thống bí ẩn, và mối thù của Thẩm gia trang mười năm trước.</p>' +
       '<div class="choices" style="max-width:360px;margin:16px auto 0">' + (has ? '<button class="choice" data-a="cont"><span><b>1.</b> Tiếp tục</span></button>' : "") +
       '<button class="choice" data-a="newGame"><span><b>' + (has ? 2 : 1) + '.</b> Bắt đầu mới</span></button></div>' +
@@ -174,7 +175,7 @@
   function sceneView() {
     const s = UI.s, sc = KM.SCENES[s.scene];
     if (!sc) return '<div class="scene solo">Không tìm thấy cảnh.</div>';
-    let h = stage(sc.place, sc.time, sc.cast, TIME_LABEL[sc.time] || "") + '<div class="scene"><p class="chap">' + esc(sc.chapter) + "</p><h2>" + esc(sc.title) + '</h2><div class="text">' + sc.text.map(line).join("") + "</div>" + msgsBox(UI.msgs);
+    let h = stage(sc.place, sc.time, sc.cast, TIME_LABEL[sc.time] || "") + '<div class="scene"><p class="chap">' + esc(sc.chapter) + "</p><h2>" + esc(sc.title) + '</h2><div class="text">' + (typeof sc.text === "function" ? sc.text(s) : sc.text).map(line).join("") + "</div>" + msgsBox(UI.msgs);
     if (s.beat && s.beat.scene === s.scene) {
       const b = s.beat;
       return h + '<div class="beat" id="beat"><p class="label">Shen chọn</p><p class="picked">' + esc(b.label) + '</p><div class="text">' + b.lines.map(line).join("") + "</div>" + msgsBox(b.msgs) +
@@ -185,6 +186,7 @@
     else if (sc.special === "art") h += artView();
     else if (sc.special === "class") h += classView();
     else if (sc.special === "rank") h += "";
+    else if (sc.special === "hub") h += '<div class="choices"><button class="choice" data-a="enterHub"><span><b>1.</b> Tiếp tục</span></button></div>';
     else if (sc.fight) h += '<div class="choices"><button class="primary" data-a="fightScene">Vào trận</button></div>';
     else {
       h += '<div class="choices">' + KM.visibleChoices(s, sc).map((c, i) => {
@@ -318,13 +320,13 @@
     Object.keys(KM.PLACES).forEach((p) => {
       const [x, y] = KM.MAP_XY[p], here = p === s.place, known = s.known.includes(p), d = dests.find((z) => z.p === p), locked = d && d.lock;
       svg += '<g class="wnode" data-a="mapSel" data-x="' + p + '" style="cursor:pointer"><circle cx="' + x + '" cy="' + y + '" r="' + (here ? 3.4 : 2.6) + '" fill="' + (here ? "#b8332c" : locked ? "#9a917c" : known ? "#22201b" : "#efe6cf") + '" stroke="#22201b" stroke-width=".6"/>' +
-        '<text x="' + x + '" y="' + (y + 6.4) + '" font-size="3.4" text-anchor="middle" fill="#22201b" font-weight="' + (p === sel ? 700 : 400) + '">' + esc(known || here ? KM.PLACES[p] : "???  " + KM.PLACES[p]) + "</text>" +
-        '<text x="' + x + '" y="' + (y + 9.6) + '" font-size="2.4" text-anchor="middle" fill="#6a5a3a">' + esc(KM.PLACE_KIND[p] + (KM.questCountAt(s, p) && known ? " · " + KM.questCountAt(s, p) + " việc" : "")) + "</text></g>";
+        '<text x="' + x + '" y="' + (y + 5.6) + '" font-size="2.9" text-anchor="middle" fill="#22201b" font-weight="' + (p === sel ? 700 : 400) + '">' + esc(known || here ? KM.PLACES[p] : "???  " + KM.PLACES[p]) + "</text>" +
+        '<text x="' + x + '" y="' + (y + 8.4) + '" font-size="2.1" text-anchor="middle" fill="#6a5a3a">' + esc(KM.PLACE_KIND[p] + (KM.questCountAt(s, p) && known ? " · " + KM.questCountAt(s, p) + " việc" : "")) + "</text></g>";
     });
     svg += "</svg>";
     let h = '<div class="panel"><div class="row" style="justify-content:space-between"><h3>Bản đồ thế giới</h3><button class="ghost sm" data-a="back">Đóng</button></div>' + svg +
       '<p class="muted">Đang ở <b>' + esc(KM.PLACES[s.place]) + "</b>. Ngựa: " + (s.horse ? esc(KM.HORSES[s.horse].name) + " ×" + KM.HORSES[s.horse].mult : "đi bộ ×1") + ". Đi tới bất kỳ đâu theo đường ngắn nhất; thời gian = tổng ngày đi bộ × hệ số ngựa, làm tròn lên theo buổi.</p>";
-    const main = Object.keys(UI.s.quests).map((k) => UI.s.quests[k]).filter((q) => q.st === "active" && q.deadline);
+    const main = Object.keys(UI.s.quests).map((k) => UI.s.quests[k]).filter((q) => q.st === "active" && q.deadline && q.deadline >= UI.s.day);
     if (main.length) h += '<p class="sys">Chính tuyến: ' + main.map((q) => esc(q.name) + " — hạn hết ngày " + q.deadline + " (còn " + Math.max(0, q.deadline - s.day) + " ngày)").join("; ") + "</p>";
     dests.forEach((d) => {
       h += '<div class="slot' + (d.p === sel ? " sel" : "") + '"><div><b>' + esc(KM.PLACES[d.p]) + "</b> <small class=\"muted\">" + esc(KM.PLACE_KIND[d.p]) + (d.known ? "" : " · chưa khám phá") + '</small><br><small class="muted">' + (d.base != null ? esc(d.via.map((n) => KM.PLACES[n]).join(" → ")) + " · đi bộ " + d.base + " ngày → " + d.days + " ngày" : "") + (d.lock ? " · " + esc(d.lock) : "") + '</small></div><button class="ghost sm" data-a="travel" data-x="' + d.p + '"' + (d.lock ? " disabled" : "") + ">Lên đường</button></div>";

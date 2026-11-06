@@ -13,7 +13,7 @@ Quy ước: **A** là ngày Shen đặt chân tới vùng của arc. Chỉ số 
 | 3 | Võ Lâm Đại Hội Thiếu Niên | D → C · Lv 19–28 | Kim Lăng | Lịch đại hội cố định, chung kết A+11 | Tạ Vân Phi (C, Lv 28) | Thắng chung kết / cố ý thua / vạch mặt quá sớm | Ván cờ với ông lão bán trà |
 | 4 | Huyết Ảnh Lâu | C → B · Lv 28–40 | Giang Nam (Vân Thủy Thành) | Đêm Huyết Nguyệt A+18 | Phó lâu chủ Quỷ Ảnh (B, Lv 40) | Giết hay tha Liên Nhi | Đáy Tây Hồ đêm rằm |
 | 5 | Ma Giáo Tây Vực | B → A · Lv 40–52 | Lương Châu, sa mạc, Thánh Hỏa Sơn | Lễ Thánh Hỏa A+16 | Hữu hộ pháp Cừu Thiên Liệt (A, Lv 50) | Xử lý lá thư của Minh chủ (4 cách) | Thần mã ở ốc đảo |
-| 6 | Bí Cảnh Kiếm Trủng | A → S · Lv 52–64 | Bắc Cảnh | Bí cảnh khép lại A+7 | Kiếm Hồn Vô Danh (S, Lv 64) | Nhận truyền thừa hay nhường đồng minh | Kiếm Ý Thạch |
+| 6 | Bí Cảnh Kiếm Trủng | A → S · Lv 52–64 | Bắc Cảnh | Bí cảnh mở A+3, khép lại cuối ngày A+9 | Kiếm Hồn Vô Danh (S, Lv 64) | Nhận truyền thừa hay nhường đồng minh | Kiếm Ý Thạch |
 | 7 | Chính Tà Đại Chiến | S · Lv 64–74 | Trung Nguyên (3 chiến tuyến) | Các chiến tuyến thất thủ theo lịch, đại chiến A+14 | Lâu chủ Huyết Y (S, Lv 72) | Cứu phái nào khi hai nơi cùng bị vây | Lời trăng trối của lão tướng |
 | 8 | Vạch Mặt Minh Chủ | S → SS · Lv 74–86 | Kim Lăng | Đại Hội Võ Lâm A+10 | Tạ Thiên Hành (SS, Lv 86) | Giết, phế võ công hay giao triều đình | Thiên Mạch Chân Giải toàn bản |
 | 9 | Thiên Hạ Đệ Nhất | SS → SSS · Lv 86–95 | Thiên Sơn | Thiên Hạ Kỳ Cục, 12 ngày | Thiên Cơ Lão Nhân (SSS, Lv 95) | Chọn kết thúc (4 kết) | Vấn Tâm đài |
@@ -153,7 +153,7 @@ Mỗi bậc +3 vào hai chỉ số ưu tiên mỗi 5 Level (ghi riêng với 5 �
 - **Lôi đài theo lịch (Arc 3):** 5 vòng vào A+5, A+7, A+9, A+10, A+11. Đơn đấu, không dùng thuốc, bỏ chạy là nhận thua. Bỏ lỡ vòng là bị loại, nhưng mạch điều tra vẫn tiếp tục.
 - **Thanh Lộ diện (Arc 4):** 0–100. Hành động đáng ngờ +5 đến +25; nghỉ ở chỗ an toàn −5. Mốc 50: bị theo dõi, thêm trận phục kích. Mốc 100: bị lộ, chuyển nhánh "Tháo chạy khỏi Vân Thủy Thành". Ảnh Tử giảm mọi mức tăng 40%.
 - **Nước trong sa mạc (Arc 5):** mỗi ngày 1 túi nước (20 đồng, mang tối đa 6; lạc đà thêm 6). Hết nước: mỗi ngày −15% HP tối đa và −10% mọi chỉ số đến khi uống lại. Thiết Cốt giảm còn −10% HP.
-- **Bí cảnh có giới hạn (Arc 6):** 7 ngày, không cửa hàng, không ngủ trọ. Mỗi tầng có "Kiếm Ý" 0–100: dùng chiêu kiếm/vũ khí đúng Võ Đạo +5, dùng thuốc −10. Đủ 100 thì mở cửa tầng sau mà không cần đánh người gác. Phe khác cùng tranh truyền thừa; có thể liên thủ hoặc phá đám.
+- **Bí cảnh có giới hạn (Arc 6):** mở ngày A+3, khép lại cuối ngày A+9 (7 ngày), không cửa hàng, không ngủ trọ. Mỗi tầng có "Kiếm Ý" 0–100: dùng chiêu kiếm/vũ khí đúng Võ Đạo +5, dùng thuốc −10. Đủ 100 thì mở cửa tầng sau mà không cần đánh người gác. Phe khác cùng tranh truyền thừa; có thể liên thủ hoặc phá đám.
 - **Bản đồ chiến tuyến (Arc 7):** 3 chiến tuyến (Nga Mi, Võ Đang, Lạc Hà), mỗi tuyến có Sĩ khí 0–100, giảm 8/ngày khi Shen vắng mặt. Mỗi trận Shen thắng ở tuyến nào +15 Sĩ khí tuyến đó. Sĩ khí về 0 là tuyến thất thủ: mất đồng minh, NPC có thể chết vĩnh viễn. Di chuyển giữa các tuyến tốn 1–2 ngày (ngựa rút ngắn).
 - **Hồ sơ chứng cứ (Arc 8):** mỗi chứng cứ và nhân chứng gom từ Arc 1–7 có điểm (vật chứng 3, nhân chứng sống 2, lời khai 1). Ở Đại Hội Võ Lâm, mỗi môn phái cần một ngưỡng điểm khác nhau để đứng về Shen (Thiếu Lâm 6, Võ Đang 5, Nga Mi 4, Cái Bang 3, Đường Môn 4 hoặc nợ ân tình).
 - **Leo Thiên Sơn (Arc 9):** 5 chặng, mỗi chặng tốn 2 ngày và một thử thách (thời tiết, cơ quan, tâm ma). Không xuống núi được sau Băng Cốc; phải chuẩn bị đủ thuốc trước khi lên.
@@ -269,7 +269,7 @@ Sáu mươi năm một lần, Kiếm Trủng ở Bắc Cảnh mở cửa. Các p
 | Nhường cho đồng minh | Đồng minh đó (Huệ Năng / Thanh Hư / Nhất Ảnh / Tạ Vân Phi) mạnh vượt bậc ở Arc 7–8; danh vọng phe đó +200, đạo đức +20; Shen nhận Kiếm Tâm (nội tại: chí mạng +8%) |
 | Phá hủy truyền thừa | Không ai có được; đạo đức không đổi; Huyết Ảnh Lâu mất mục tiêu lớn nhất, Arc 7 Huyết Ảnh yếu đi (trùm −15% HP) |
 
-**Hạn chót:** bí cảnh khép lại cuối ngày A+7. Ai còn trong bí cảnh sẽ bị đẩy ra ngoài, mất truyền thừa. Nếu Shen tới tầng 3 sau A+7, Huyết Ảnh Ngũ Lão đã lấy truyền thừa, mang về cho Lâu chủ (trùm Arc 7 mạnh hơn).
+**Hạn chót:** bí cảnh khép lại cuối ngày A+9. Ai còn trong bí cảnh sẽ bị đẩy ra ngoài, mất truyền thừa. Nếu Shen chưa hạ Kiếm Hồn trước lúc đó, Huyết Ảnh Ngũ Lão đã lấy truyền thừa, mang về cho Lâu chủ (trùm Arc 7 mạnh hơn).
 
 **Kỳ ngộ · Kiếm Ý Thạch:** ở hồ băng tầng 2, vượt tầng 2 mà không dùng vật phẩm nào. Phần thưởng: mọi kỹ năng của Võ Đạo hiện tại +1 mức thuần thục.
 
@@ -423,13 +423,13 @@ Sau đại chiến, Tạ Thiên Hành mở Đại Hội Võ Lâm ở Kim Lăng �
 
 Kẻ đứng sau tất cả là Thiên Cơ Lão Nhân, đệ tử duy nhất của Kiếm Thần Vô Danh. Ông lão bán trà ở Kim Lăng từ Arc 2–3 chính là ông ta. Lão dạy ma công cho Tạ Thiên Hành, nuôi Huyết Ảnh Lâu, đẩy giang hồ vào chiến tranh, chỉ để biến thiên hạ thành một bàn cờ thử võ đạo. Lão gửi cho Shen một quân cờ đen kèm lời mời: "Lên Thiên Sơn. Ván cờ này, ngươi là quân cuối cùng."
 
-**Mở đầu:** Kim Lăng → Thiên Sơn 14 ngày. Thiên Cơ mở "Thiên Hạ Kỳ Cục": 12 ngày sau khi Shen tới chân núi, lão sẽ phá Thiên Sơn Băng Đê, nhấn chìm ba trấn dưới chân núi. Đồng minh còn sống từ các arc trước có thể theo Shen tới chân núi, nhưng chỉ một người được lên cùng.
+**Mở đầu:** Kim Lăng → Thiên Sơn 14 ngày. Thiên Cơ mở "Thiên Hạ Kỳ Cục": 12 ngày sau khi Shen tới chân núi, lão sẽ phá Thiên Sơn Băng Đê, nhấn chìm ba trấn dưới chân núi. Đồng minh còn sống có thể theo Shen tới chân núi, nhưng **Shen leo núi một mình**: họ ở lại giữ ba trấn.
 
 | Ngày | Cảnh | Nội dung | Lựa chọn / kiểm tra |
 | --- | --- | --- | --- |
 | A | Chân Thiên Sơn | Ba trấn dưới chân núi chưa biết gì. Thiên Cơ để lại bàn cờ dở trên tảng đá | Sơ tán dân (mất 2 ngày, đạo đức +30) / lên núi ngay |
 | A+1–A+2 | Chặng 1 · Phong Tuyết | Bão tuyết, tuyết quái | Áo lông tuyết lang miễn mất HP vì lạnh |
-| A+3–A+4 | Chặng 2 · Băng Cốc | Cơ quan nhân của Thiên Cơ; qua đây là không xuống núi được nữa | Chọn người đồng hành duy nhất |
+| A+3–A+4 | Chặng 2 · Băng Cốc | Cơ quan nhân của Thiên Cơ; qua đây là không xuống núi được nữa | Không quay đầu được |
 | A+5–A+6 | Chặng 3 · Kỳ Lộ | 9 bàn cờ đá, mỗi bàn là một câu hỏi về những lựa chọn trong Sổ Ân Oán của Shen | Không đúng sai; mỗi câu trả lời tăng một trong 4 hướng kết thúc |
 | A+7–A+8 | Chặng 4 · Vấn Tâm đài | Kỳ ngộ Vấn Tâm; Võ Đạo Tâm | Điều kiện đột phá SSS |
 | A+9–A+10 | Chặng 5 · Thiên Cơ Các | Thiên Cơ ngồi chờ bên bàn cờ, rót trà như ở Kim Lăng | Đánh nốt ván cờ (Ngộ Tính 30: trùm −15% HP) / lật bàn cờ, rút vũ khí |
@@ -475,8 +475,17 @@ Sau kết thúc: chế độ giang hồ tự do với nhiệm vụ sinh ngẫu n
 
 ---
 
-## 11. Câu hỏi mở
+## 11. Quyết định đã chốt
 
-- Việc "Hợp đồng thứ sáu" (Arc 4) có mục tiêu Tô Vân Yên: giữ lựa chọn giết cô ấy, hay chỉ cảnh báo / giả chết?
-- Đồng hành chết vĩnh viễn ở Arc 7–9: giữ như thiết kế, hay cho phép một lần "kỳ ngộ hồi sinh" bằng Thiên Mạch Chân Giải?
-- Arc 9 chỉ cho một đồng minh lên núi: có muốn mở chế độ đi cùng hai người nếu hảo cảm cả hai ≥ 90 không?
+- **Hợp đồng thứ sáu (Arc 4) nhắm vào Tô Vân Yên:** có hành động "Giết cô ấy" trong game. Giết thì cô chết vĩnh viễn, Đạo đức −80, Nga Mi không bao giờ đứng về phía Shen ở Arc 8. Ba lựa chọn khác: báo cho cô trốn, dàn cảnh giả chết (cần hảo cảm ≥ 40, Ngộ Tính độ khó 20), hoặc từ chối hợp đồng.
+- **Đồng hành chết vĩnh viễn**, trừ khi Shen cứu được. Ai từng được cứu (`saved_…`) thì chiến tuyến thất thủ không giết được họ nữa. Những chỗ có thể mất người: bỏ mặc đồng hành ở nghĩa địa Kiếm Trủng, chiến tuyến Arc 7 về 0 Sĩ khí, thua Quỷ Ảnh ở Tây Hồ, nhân chứng bị ám sát ở Arc 8, và các lựa chọn giết của chính Shen. Không có kỳ ngộ hồi sinh.
+- **Arc 9: Shen leo Thiên Sơn một mình.**
+
+## 12. Ghi chú cân bằng (bản chơi được)
+
+- Trùm và đối thủ lôi đài Arc 3–9 có máu ×1.6 và công ×1.5 so với công thức gốc. Bot chơi thử thua lần đầu khoảng 40–60% ở các trùm chính.
+- Mỗi lần thua trùm, Shen được hồi đầy và trùm còn ×0.85 máu ở lần sau (cộng dồn). Cảnh thua có lựa chọn rút lui luyện thêm.
+- Lỡ mất một mốc đột phá (bị loại sớm ở Đại Hội, bị lộ trước Sinh Tử Quan), kết arc vẫn cấp điều kiện đột phá để không bị kẹt.
+- Sĩ khí chiến tuyến giảm 6/ngày khi Shen vắng mặt.
+- Thiên Cơ Lão Nhân luôn mạnh ít nhất bằng Shen + 2 Level, để EXP dồn lại ở trần cảnh giới không làm trận cuối quá dễ.
+- Nhiệm vụ nhánh trong game: 6 việc mỗi arc cho Arc 3–7, 3 việc cho Arc 8 (cộng thêm các việc thu thập chứng cứ ở Kim Lăng), 3 việc cho Arc 9.

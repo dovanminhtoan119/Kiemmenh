@@ -129,6 +129,8 @@
     chuong_quy: { skin: "#e0bc96", hair: "topknot", hc: "#2a2a2a", robe: "#7a3a2a", trim: "#d8b060", label: "Chưởng quỹ Tiền" },
     lang_trung: { skin: "#e4c4a0", hair: "long", hc: "#5a5a5a", robe: "#4a6a5a", trim: "#d8e8e0", beard: "#6a6a6a", label: "Lang trung Mạc" },
   };
+  KM.PORTRAITS = P;
+  KM.ART = { roof, pine, mountains, rng, SKY, INK, FAR, MID, LAMP };
   function beast(kind, label) {
     let body = "";
     if (kind === "soi") body = '<path d="M20 120 L34 70 L48 92 L60 60 L74 92 L90 70 L100 120 Z" fill="#5d6268"/><path d="M38 96 l10 6 M80 96 l-10 6" stroke="#f2d16b" stroke-width="4"/><path d="M50 112 l10 10 l10 -10" fill="#e8e8e8"/>';

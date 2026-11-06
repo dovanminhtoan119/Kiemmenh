@@ -38,7 +38,7 @@
   KM.enterScene = function (s, id) {
     s.scene = id; s.hub = null;
     const sc = KM.SCENES[id]; if (!sc) return ["(Thiếu cảnh: " + id + ")"];
-    return KM.applyX(s, sc.onEnter, "enter:" + id);
+    return KM.applyX(s, sc.onEnter, sc.repeat ? null : "enter:" + id);
   };
   KM.choose = function (s, idx) {
     const sc = KM.SCENES[s.scene], c = KM.visibleChoices(s, sc)[idx];
@@ -49,6 +49,7 @@
       let b = 0; if (c.check.bonusTrait) for (const t in c.check.bonusTrait) if (KM.hasTrait(s, t)) b += c.check.bonusTrait[t];
       const r = KM.check(s, c.check.stat, c.check.dc, b); msgs.push(r.line); if (!r.ok) go = c.fail;
       beat = (r.ok ? c.rOk : c.rFail) || beat;
+      const ex = r.ok ? c.effOk : c.effFail; if (ex) msgs.push(...KM.applyX(s, ex));
     }
     msgs.push(...KM.applyX(s, c.eff, s.scene + ":" + idx));
     return { msgs, go, beat, label: c.t };

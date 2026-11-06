@@ -8,6 +8,13 @@ Chơi tại: https://dovanminhtoan119.github.io/Kiemmenh/
 ## Nội dung bản này
 - **Mở đầu + Arc 1 · Tạp Dịch Thanh Vân**: rửa oan trong 7 ngày, 3 manh mối, đối chất công khai hoặc phục kích, kỳ ngộ hang sau thác.
 - **Arc 2 · Trấn Lạc Hà**: Lão Hồ, Long Môn Tiêu Cục, cứu Long Phượng Nhi ở Hắc Phong Trại, chuyến tiêu Phong Lâm, lôi đài, kỳ ngộ ông lão đánh cá, thủy phỉ Hắc Giao, chọn phe.
+- **Arc 3 · Võ Lâm Đại Hội Thiếu Niên** (Kim Lăng): lôi đài theo lịch 5 vòng, điều tra nhẫn đồng, đột nhập kho phủ Minh chủ lấy khuôn đồng, 3 kết (nổi danh / ẩn mình / truy nã), kỳ ngộ ván cờ ông lão bán trà.
+- **Arc 4 · Huyết Ảnh Lâu** (Vân Thủy Thành): Lộ diện 0–100, sáu hợp đồng ám sát (hợp đồng thứ sáu nhắm vào Tô Vân Yên), Sinh Tử Quan, Tàng Án Các, Liên Nhi, đêm Huyết Nguyệt.
+- **Arc 5 · Ma Giáo Tây Vực**: túi nước qua sa mạc, Tam Quan, Ma Lao, lễ Thánh Hỏa, lá thư của Minh chủ (4 cách xử lý), kỳ ngộ Hãn Huyết Bảo Mã.
+- **Arc 6 · Bí Cảnh Kiếm Trủng**: bí cảnh 7 ngày, đồng hành, ba tầng, Kiếm Hồn Vô Danh, truyền thừa.
+- **Arc 7 · Chính Tà Đại Chiến**: ba chiến tuyến với Sĩ khí, sự kiện theo lịch, cứu Võ Đang hay Cái Bang, đồng hành có thể chết vĩnh viễn.
+- **Arc 8 · Vạch Mặt Minh Chủ**: hồ sơ chứng cứ, thuyết phục 5 phái, ám sát nhân chứng, tâm ma, Đại Hội Võ Lâm.
+- **Arc 9 · Thiên Hạ Đệ Nhất**: leo Thiên Sơn một mình qua 5 chặng, Vấn Tâm đài, Thiên Cơ Lão Nhân, 5 kết thúc, giang hồ tự do sau khi phá đảo.
 
 ## Hệ thống
 - EXP `floor(100 × L^1.5)`, 5 điểm/cấp, trần Level theo cảnh giới E–SSS (đột phá Rank D: thắng một đối thủ Rank D đơn đấu).
@@ -26,7 +33,7 @@ Chơi tại: https://dovanminhtoan119.github.io/Kiemmenh/
 - **So sánh trang bị**: mỗi món trong Túi đồ và cửa hàng hiện bảng chênh lệch chỉ số so với đồ đang mặc (↑ tốt hơn / ↓ kém hơn, cảnh báo khi khác vũ khí của Võ Đạo). Tự mặc đồ tốt hơn là tùy chọn, mặc định tắt.
 
 ## Thiết kế các arc tiếp theo
-Bản thiết kế toàn bộ Arc 3–9 (Rank D → SSS, 4 kết thúc): [docs/THIET-KE-ARC-3-9.md](docs/THIET-KE-ARC-3-9.md).
+Bản thiết kế toàn bộ Arc 3–9 (Rank D → SSS): [docs/THIET-KE-ARC-3-9.md](docs/THIET-KE-ARC-3-9.md).
 
 ## Cấu trúc
 - `js/data.js` — chỉ số, cảnh giới, đặc tính, vũ khí, vật phẩm, ngựa, kẻ địch, cửa hàng.
@@ -35,6 +42,7 @@ Bản thiết kế toàn bộ Arc 3–9 (Rank D → SSS, 4 kết thúc): [docs/T
 - `js/combat.js` — chiến đấu theo lượt.
 - `js/story_a1.js`, `js/story_a2.js` — cốt truyện; `js/hub.js` — khu tự do, sự kiện, bản đồ; `js/quests.js` — nhiệm vụ nhánh.
 - `js/art.js` — phông cảnh và chân dung SVG; `js/ui.js`, `css/style.css` — giao diện (Times New Roman).
-- `tests/engine.test.js` — unit test công thức + bot chơi thử tự động qua 2 arc: `node tests/engine.test.js 60`.
+- `js/data2.js`, `js/skills2.js`, `js/hub2.js`, `js/story_a3.js` … `js/story_a8_9.js`, `js/quests2.js`, `js/art2.js` — nội dung và bộ máy Arc 3–9.
+- `tests/engine.test.js` — unit test công thức + bot chơi thử tự động từ đầu tới kết thúc Arc 9: `node tests/engine.test.js 20`.
 
 Sau khi sửa `app.part.html`, chạy `sh build.sh` để tạo lại `index.html`.
