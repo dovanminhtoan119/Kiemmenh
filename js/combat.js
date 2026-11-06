@@ -27,7 +27,7 @@
       if (cut !== 1) foes.forEach((f) => (f.hp = f.maxHP = Math.max(1, Math.floor(f.hp * cut))));
       const luk = KM.eff(s).LUK;
       return { foes, round: 1, log: [], hist: [], cds: {}, close: false, kt: 0, buf: { guard: 0, guardT: 0, eva: 0, evaT: 0, counter: 0, counterT: 0 },
-        poison: 0, rerollOn: false, rerolls: luk >= 100 ? 3 : luk >= 50 ? 2 : luk >= 20 ? 1 : 0, revived: false, observed: [], learned: [], opts, over: null, tIdx: 0, firstStrike: !!opts.ambush || KM.hasTrait(s, "tien_phat"), usedKH: false };
+        poison: 0, rerollOn: false, rerolls: (luk >= 100 ? 3 : luk >= 50 ? 2 : luk >= 20 ? 1 : 0) + s.traits.reduce((n, t) => n + ((KM.TRAITS[t] && KM.TRAITS[t].rerolls) || 0), 0), revived: false, observed: [], learned: [], opts, over: null, tIdx: 0, firstStrike: !!opts.ambush || s.traits.some((t) => KM.TRAITS[t] && KM.TRAITS[t].first), usedKH: false };
     },
     alive: (c) => c.foes.filter((f) => f.hp > 0),
     target(c) { const t = c.foes[c.tIdx]; return t && t.hp > 0 ? t : this.alive(c)[0]; },

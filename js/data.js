@@ -69,7 +69,7 @@
     ngoai_gia: { name: "Ngoại Gia Cao Thủ", desc: "Sát thương ngoại công ×1.25.", cost: "Nội công ×0.85", ngoaiMul: 1.25, noiMul: 0.85 },
     thiet_bich: { name: "Thiết Bích", desc: "Mọi sát thương phải chịu ×0.85.", cost: "AGI ×0.9", mult: { AGI: 0.9 }, taken: 0.85 },
     ngo_tinh: { name: "Ngộ Tính Siêu Phàm", desc: "EXP nhận ×1.25.", cost: "−", expMul: 1.25 },
-    tien_phat: { name: "Tiên Phát Chế Nhân", desc: "Luôn ra đòn trước ở lượt đầu, đòn đầu ×1.3.", cost: "Sát thương chí mạng −0.1", dx: { critDmg: -0.1 } },
+    tien_phat: { name: "Tiên Phát Chế Nhân", desc: "Luôn ra đòn trước ở lượt đầu, đòn đầu ×1.3.", cost: "Sát thương chí mạng −0.1", dx: { critDmg: -0.1 }, first: true },
     hau_phat: { name: "Hậu Phát Chế Nhân", desc: "Sát thương ×1.25 khi HP dưới 50%.", cost: "−", lowHp: 1.25 },
     thiet_cot: { name: "Thiết Cốt", desc: "VIT ×1.3; giảm 10% sát thương vật lý phải chịu.", cost: "−", mult: { VIT: 1.3 } },
     than_hanh: { name: "Thần Hành", desc: "AGI ×1.3; bỏ chạy luôn thành công trước địch cùng Rank hoặc thấp hơn.", cost: "−", mult: { AGI: 1.3 } },
@@ -89,6 +89,11 @@
     kim_cuong: { name: "Kim Cương Bất Hoại", desc: "Giáp vật lý ×1.5.", cost: "AGI ×0.9", mult: { AGI: 0.9 } },
     thien_sinh: { name: "Thiên Sinh Thần Lực", desc: "STR ×1.2, VIT ×1.2.", cost: "INT ×0.9", mult: { STR: 1.2, VIT: 1.2, INT: 0.9 } },
     kiem_ma: { name: "Kiếm Ma Huyết Mạch", desc: "Mở điều kiện Class ẩn Tuyệt Mạch Kiếm Ma.", cost: "Chính phái nghi kỵ khi lộ diện", rare: true },
+    thien_ma: { name: "Thiên Ma Chi Thể", desc: "Mọi sát thương gây ra ×1.3, cả ngoại công lẫn nội công.", cost: "HP tối đa ×0.85", rare: true, ngoaiMul: 1.3, noiMul: 1.3, dx: { hpMul: 0.85 } },
+    cuu_duong: { name: "Cửu Dương Chân Thể", desc: "HP tối đa ×1.4; mỗi lượt hồi 4% HP.", cost: "Khí Huyết tối đa ×0.8", rare: true, dx: { hpMul: 1.4, khMul: 0.8 }, regen: { hp: 0.04 } },
+    than_toan: { name: "Thiên Cơ Thần Toán", desc: "INT ×1.3; mỗi trận được gieo lại xúc xắc thêm 2 lần.", cost: "−", rare: true, mult: { INT: 1.3 }, rerolls: 2 },
+    long_tuong: { name: "Long Tượng Thần Lực", desc: "STR ×1.4, VIT ×1.4.", cost: "AGI ×0.9", rare: true, mult: { STR: 1.4, VIT: 1.4, AGI: 0.9 } },
+    phong_loi: { name: "Phong Lôi Ảnh Bộ", desc: "Né tránh +12%; luôn ra đòn trước ở lượt đầu, đòn đầu ×1.3.", cost: "Giáp vật lý ×0.85", rare: true, dx: { eva: 12, defMul: 0.85 }, first: true },
   };
 
   /* ---------------- Vũ khí ---------------- */
