@@ -81,7 +81,7 @@ function traitTests() {
   ok(pool.length >= 40, "Có ít nhất 40 đặc tính thường (" + pool.length + ")");
   ok(Object.keys(KM.TRAITS).filter((k) => KM.TRAITS[k].rare).length === 6, "Có 6 đặc tính hiếm");
   const s2 = KM.newGame(); let seenRare = 0; for (let i = 0; i < 200; i++) { KM.offerTraits(s2); ok(s2.traitOffer.length === 10 && new Set(s2.traitOffer).size === 10, "Mỗi lượt 10 đặc tính khác nhau"); if (s2.traitOffer.some((k) => KM.TRAITS[k].rare)) seenRare++; }
-  ok(seenRare > 40 && seenRare < 140, "Đặc tính hiếm xuất hiện ở khoảng 1/3 số lượt (" + seenRare + "/200)");
+  ok(seenRare > 100 && seenRare < 150, "Đặc tính hiếm xuất hiện ở khoảng 60% số lượt (" + seenRare + "/200)");
   ["kiem", "dao", "con", "thuong", "quyen"].forEach((w) => ok(pool.some((k) => KM.TRAITS[k].wmul && KM.TRAITS[k].wmul[w] >= 1.5), "Có đặc tính chuyên " + w));
 }
 traitTests();

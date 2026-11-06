@@ -619,12 +619,12 @@
   /* ---------------- Đặc tính khởi đầu: chọn từng cái một ----------------
      Mỗi lượt hiện 10 đặc tính ngẫu nhiên (chưa có), chọn 1; hệ thống xáo bộ mới cho lượt sau.
      Mỗi lượt được xáo lại 1 lần. */
-  KM.TRAIT_PICKS = 2; KM.TRAIT_OFFER = 10; KM.RARE_PCT = 6;
-  // Mỗi lượt 10 đặc tính; mỗi đặc tính hiếm chưa có được gieo riêng d100 ≤ 6 để xuất hiện (tối đa 2 cái)
+  KM.TRAIT_PICKS = 2; KM.TRAIT_OFFER = 10; KM.RARE_PCT = 15; KM.RARE_MAX = 3;
+  // Mỗi lượt 10 đặc tính; mỗi đặc tính hiếm chưa có được gieo riêng d100 ≤ 15 để xuất hiện (tối đa 3 cái)
   KM.offerTraits = function (s) {
     const have = s.traitPick || [];
     const pool = Object.keys(KM.TRAITS).filter((k) => !KM.TRAITS[k].rare && !have.includes(k)), out = [];
-    const rares = Object.keys(KM.TRAITS).filter((k) => KM.TRAITS[k].rare && !have.includes(k) && KM.d100(s) <= KM.RARE_PCT).slice(0, 2);
+    const rares = Object.keys(KM.TRAITS).filter((k) => KM.TRAITS[k].rare && !have.includes(k) && KM.d100(s) <= KM.RARE_PCT).slice(0, KM.RARE_MAX);
     while (out.length < KM.TRAIT_OFFER - rares.length && out.length < pool.length) { const k = pool[Math.floor(KM.rand(s) * pool.length)]; if (!out.includes(k)) out.push(k); }
     s.traitOffer = out.concat(rares); return s.traitOffer;
   };

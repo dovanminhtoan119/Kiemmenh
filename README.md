@@ -19,7 +19,7 @@ Chơi tại: https://dovanminhtoan119.github.io/Kiemmenh/
 ## Hệ thống
 - EXP `floor(100 × L^1.5)`, 5 điểm/cấp, trần Level theo cảnh giới E–SSS (đột phá Rank D: thắng một đối thủ Rank D đơn đấu).
 - 6 chỉ số, chỉ số phái sinh theo bản thiết kế; Tuyệt Mạch ×1.2 Lực/Thân Pháp/Căn Cốt, dùng Khí Huyết thay Nội Lực.
-- 47 đặc tính (41 thường, 6 hiếm): chuyên từng loại vũ khí (kiếm, đao, côn, thương, quyền sáo, mọi binh khí), chuyên từng chỉ số, chí mạng, né tránh, HP, Khí Huyết, thể lực, nội/ngoại công, giảm sát thương, EXP… Chọn lần lượt 2 cái, mỗi lượt 10 lựa chọn, được xáo lại 1 lần mỗi lượt. Mỗi đặc tính hiếm có 6% cơ hội xuất hiện ở mỗi lượt.
+- 47 đặc tính (41 thường, 6 hiếm): chuyên từng loại vũ khí (kiếm, đao, côn, thương, quyền sáo, mọi binh khí), chuyên từng chỉ số, chí mạng, né tránh, HP, Khí Huyết, thể lực, nội/ngoại công, giảm sát thương, EXP… Chọn lần lượt 2 cái, mỗi lượt 10 lựa chọn, được xáo lại 1 lần mỗi lượt. Mỗi đặc tính hiếm có 15% cơ hội xuất hiện ở mỗi lượt (tối đa 3 cái).
 - 5 vũ khí có đặc trưng riêng (Kiếm Thế, Phá Giáp, Quét Ngang, Tiên Phát, Liên Kích) + khắc chế tầm đánh.
 - Võ Đạo: mỗi vũ khí 2 nhánh Ngoại công / Nội công, mỗi nhánh có Class ẩn. Nội công của Shen đạt 60% → 75% → 90% → 100% theo mảnh Thiên Mạch Chân Giải.
 - Võ công riêng trên Mạch Ẩn: hình thành từ cách chơi + 5 câu phỏng vấn, Hệ Thống đề xuất 3 hướng.
