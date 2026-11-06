@@ -42,7 +42,7 @@
       quests: {}, ledger: [], flags: [], claimed: [], clues: [], visits: {},
       rng: { s: (seed == null ? Math.floor(Math.random() * 2147483647) : seed) | 0 },
       scene: "p_rain", hub: null, travel: null, weakUntil: 0, pendingRank: null, mini: null,
-      stats: { kills: 0, wins: 0, losses: 0 }, marks: {}, tieuRun: null, known: ["thanh_van"], side: {},
+      stats: { kills: 0, wins: 0, losses: 0 }, marks: {}, tieuRun: null, known: ["thanh_van"], side: {}, opts: { autoEquip: false },
     };
     KM.recalc(s, true);
     s.cur.hp = 38; // đêm mưa: bị đánh gần chết
@@ -234,6 +234,20 @@
     for (const k in names) if (a.d[k] !== b.d[k]) out.push(names[k] + " " + a.d[k] + " → " + b.d[k]);
     return out;
   };
+  // So sánh một món trong túi với món đang mặc ở cùng ô (mô phỏng trên bản sao trạng thái)
+  KM.compareEquip = function (s, id) {
+    const it = KM.ITEMS[id]; if (!it || !it.slot) return null;
+    const slot = KM.slotFor(s, it), cur = s.gear[slot];
+    const c = JSON.parse(JSON.stringify(s)); c.gear[slot] = id;
+    const a = KM.snap(s), b = KM.snap(c), rows = [];
+    KM.STATS.forEach((k) => { if (a.e[k] !== b.e[k]) rows.push({ k, a: a.e[k], b: b.e[k] }); });
+    const names = { patk: "Công vật lý", npow: "Nội công lực", pdef: "Giáp", maxHP: "HP tối đa", maxKH: "Khí Huyết", maxSTA: "Thể lực", eva: "Né %", crit: "Chí mạng %", critDmg: "Sát thương chí mạng" };
+    for (const k in names) if (a.d[k] !== b.d[k]) rows.push({ k: names[k], a: a.d[k], b: b.d[k] });
+    rows.forEach((r) => (r.d = Math.round((r.b - r.a) * 100) / 100));
+    const score = rows.reduce((t, r) => t + (["Công vật lý", "Nội công lực", "Giáp"].includes(r.k) ? r.d * 2 : r.d), 0);
+    const wtNote = it.wtype && s.cls && KM.CLASSES[s.cls].weapon !== it.wtype ? "Khác vũ khí của Võ Đạo (" + KM.WEAPON_TYPES[KM.CLASSES[s.cls].weapon].name + ") — chiêu Võ Đạo sẽ không dùng được." : "";
+    return { slot, cur, rows, better: score > 0 && !wtNote, worse: score < 0 || !!wtNote, meets: KM.meets(s, it.req), wtNote };
+  };
   KM.equip = function (s, id) {
     const it = KM.ITEMS[id];
     if (!it || !it.slot || !s.inv[id]) return ["Không thể trang bị."];
@@ -254,6 +268,7 @@
   // Tự mặc đồ tốt hơn (vũ khí: chỉ cùng loại với Võ Đạo; chưa có Võ Đạo thì chỉ khi tay không hoặc cùng loại)
   KM.autoEquip = function (s, id) {
     const it = KM.ITEMS[id]; if (!it || !it.slot || !KM.meets(s, it.req)) return [];
+    if (!(s.opts && s.opts.autoEquip)) { const c = KM.compareEquip(s, id); return c && c.better ? ["  ↑ Tốt hơn đồ đang mặc ở ô " + (KM.SLOTS[c.slot] || "Ngọc bội") + ". Vào Túi đồ để so sánh và chọn."] : []; }
     if (it.slot === "weapon") {
       const cw = KM.weaponType(s), want = s.cls ? KM.CLASSES[s.cls].weapon : null;
       if (want && it.wtype !== want) return [];
@@ -573,6 +588,7 @@
   KM.migrate = function (s) {
     if (!s.known) { s.known = ["thanh_van"]; if (KM.has(s, "arrived_lac_ha")) s.known.push("hanh_hoa", "lac_ha"); if (s.quests.q_cuu_phuong) s.known.push("hac_phong"); if (s.quests.q_phong_lam) s.known.push("phong_lam"); if (!s.known.includes(s.place)) s.known.push(s.place); }
     if (!s.side) s.side = {};
+    if (!s.opts) s.opts = { autoEquip: false };
     if (!s.marks) s.marks = {};
     if ((KM.has(s, "expelled") || KM.has(s, "fugitive_tv") || KM.has(s, "killed_tieu_hao")) && !KM.has(s, "tv_banned")) s.flags.push("tv_banned");
   };

@@ -49,6 +49,9 @@ const ok = (c, m) => { if (!c) { fails++; console.log("✗ " + m); } };
   // hạn chính tuyến
   { const t = KM.newGame(5); t.place = "hanh_hoa"; t.day = KM.A1_DEADLINE; eq(KM.hubTrigger(t), "a1_trial", "xét xử dù ở ngoài núi"); }
   for (const k in KM.SIDEQUESTS) { const q = KM.SIDEQUESTS[k]; ok(KM.HUBS[q.place] && KM.HUBS[q.place].locs.find((l) => l.id === q.loc), "nơi nhận " + k); if (q.kind === "kill") q.foe.forEach((f) => ok(KM.ENEMIES[f], "địch " + f)); if (q.item) ok(KM.ITEMS[q.item], "vật phẩm " + q.item); if (q.to) ok(KM.HUBS[q.to].locs.find((l) => l.id === q.toLoc), "nơi giao " + k); }
+  // so sánh trang bị, không tự mặc khi tắt
+  { const t = KM.newGame(9); t.level = 12; KM.addItem(t, "thiet_kiem", 1); ok(!t.gear.weapon, "không tự mặc khi tắt"); const c = KM.compareEquip(t, "thiet_kiem"); ok(c.better && c.rows.some((r) => r.k === "Công vật lý" && r.d === 5), "so sánh Công +5");
+    KM.equip(t, "thiet_kiem"); KM.addItem(t, "tinh_cuong_kiem", 1); const c2 = KM.compareEquip(t, "tinh_cuong_kiem"); ok(c2.cur === "thiet_kiem" && c2.better, "so với đồ đang mặc"); }
   for (const k in KM.CLASSES) { ok(KM.SKILLS[KM.CLASSES[k].s1] && KM.SKILLS[KM.CLASSES[k].s2], "kỹ năng class " + k); }
 }
 
@@ -82,7 +85,7 @@ function playSceneFight(s, sc, log) {
   return won || c.over === "flee" ? (won ? sc.fight.win : sc.fight.lose) : sc.fight.lose;
 }
 function botRun(seed, verbose) {
-  const s = KM.newGame(seed), log = [];
+  const s = KM.newGame(seed), log = []; s.opts.autoEquip = true;
   let steps = 0, scene = "p_rain";
   KM.enterScene(s, scene);
   const rnd = () => KM.rand(s); const skip = new Set();

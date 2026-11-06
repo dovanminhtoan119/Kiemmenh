@@ -23,6 +23,10 @@ Chơi tại: https://dovanminhtoan119.github.io/Kiemmenh/
 - **Nhiệm vụ nhánh**: 17 việc nhận từ NPC ở môn phái, thôn làng, thị trấn (giết / thu thập / giao hàng có hạn).
 - Hạn chính tuyến: Arc 1 xét xử sáng ngày 10; Arc 2 cứu Phượng Nhi trong 6 ngày, Hắc Giao rời Lạc Hà sau 24 ngày, chuyến tiêu Phong Lâm hạn 5 ngày.
 - Tự lưu, 3 ô lưu, xuất/nhập file có mã kiểm tra.
+- **So sánh trang bị**: mỗi món trong Túi đồ và cửa hàng hiện bảng chênh lệch chỉ số so với đồ đang mặc (↑ tốt hơn / ↓ kém hơn, cảnh báo khi khác vũ khí của Võ Đạo). Tự mặc đồ tốt hơn là tùy chọn, mặc định tắt.
+
+## Thiết kế các arc tiếp theo
+Bản thiết kế toàn bộ Arc 3–9 (Rank D → SSS, 4 kết thúc): [docs/THIET-KE-ARC-3-9.md](docs/THIET-KE-ARC-3-9.md).
 
 ## Cấu trúc
 - `js/data.js` — chỉ số, cảnh giới, đặc tính, vũ khí, vật phẩm, ngựa, kẻ địch, cửa hàng.

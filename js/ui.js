@@ -121,6 +121,7 @@
     unequip(slot) { UI.msgs = KM.unequip(UI.s, slot); },
     use(id) { const m = KM.useItem(UI.s, id); UI.msgs = m ? [m] : []; },
     tab(t) { UI.tab = t; UI.obs = null; },
+    toggleAuto() { const s = UI.s; s.opts = s.opts || {}; s.opts.autoEquip = !s.opts.autoEquip; },
     // lưu
     saveSlot(i) { store.set(SLOT(i), KM.exportSave(UI.s)); UI.msgs = ["Đã lưu vào ô " + i + "."]; },
     loadSlot(i) { const r = KM.importSave(store.get(SLOT(i)) || ""); if (r.s) { UI.s = r.s; UI.title = false; UI.combat = null; UI.view = null; UI.tab = "story"; UI.msgs = ["Đã tải ô " + i + "."]; } else UI.msgs = [r.err]; },
@@ -142,7 +143,7 @@
     A[a](nx, ny);
     if (UI.s && !UI.title) save();
     render();
-    const keep = ["alloc", "target", "reroll", "mapSel", "sellMode"].includes(a) || (a === "special" && (x === "trait" || x === "pick"));
+    const keep = ["alloc", "target", "reroll", "mapSel", "sellMode", "toggleAuto", "equip", "unequip", "use", "buy", "sell", "enh"].includes(a) || (a === "special" && (x === "trait" || x === "pick"));
     const bt = a === "choose" && document.getElementById("beat");
     if (bt) bt.scrollIntoView({ block: "start" }); else if (!keep) window.scrollTo(0, 0);
   });
@@ -268,9 +269,15 @@
     }
     return h;
   }
-  function itemRow(s, id, right) {
+  function cmpBox(s, id) {
+    const c = KM.compareEquip(s, id); if (!c) return "";
+    const cur = c.cur ? KM.ITEMS[c.cur].name + (s.enh[c.cur] ? " +" + s.enh[c.cur] : "") : "ô trống";
+    const rows = c.rows.length ? c.rows.map((r) => '<span class="' + (r.d > 0 ? "up" : "down") + '">' + esc(r.k) + " " + r.a + " → " + r.b + " (" + (r.d > 0 ? "+" : "") + r.d + ")</span>").join("") : '<span class="eq">Không đổi chỉ số</span>';
+    return '<div class="cmp ' + (c.better ? "better" : c.worse ? "worse" : "") + '"><small>So với đang mặc (' + esc(cur) + "):" + (c.better ? " <b>tốt hơn</b>" : c.worse ? " <b>kém hơn</b>" : "") + "</small>" + rows + (c.meets ? "" : '<span class="down">Chưa đủ điều kiện</span>') + (c.wtNote ? '<span class="down">' + esc(c.wtNote) + "</span>" : "") + "</div>";
+  }
+  function itemRow(s, id, right, cmp) {
     const it = KM.ITEMS[id];
-    return '<div class="slot"><div><b>' + esc(it.name) + "</b>" + qTag(it.q) + (it.rank ? " " + rTag(it.rank) : "") + (it.wtype ? ' <small class="muted">' + esc(KM.WEAPON_TYPES[it.wtype].name) + "</small>" : "") + '<br><small class="muted">' + esc(KM.itemLine(s, id)) + (it.req ? " · cần " + esc(KM.reqText(it.req)) : "") + "</small></div>" + right + "</div>";
+    return '<div class="slot"><div><b>' + esc(it.name) + "</b>" + qTag(it.q) + (it.rank ? " " + rTag(it.rank) : "") + (it.wtype ? ' <small class="muted">' + esc(KM.WEAPON_TYPES[it.wtype].name) + "</small>" : "") + '<br><small class="muted">' + esc(KM.itemLine(s, id)) + (it.req ? " · cần " + esc(KM.reqText(it.req)) : "") + "</small>" + (cmp && it.slot ? cmpBox(s, id) : "") + "</div>" + right + "</div>";
   }
   function shopView(id) {
     const s = UI.s, sh = KM.SHOPS[id];
@@ -282,7 +289,7 @@
     }
     KM.shopStock(s, id).forEach((e, i) => {
       if (e.book) { const sk = KM.SKILLS[e.book]; h += '<div class="slot"><div><b>' + esc(e.name) + '</b><br><small class="muted">' + esc(sk.desc) + " · " + esc(KM.skillLine(s, e.book)) + " · cần Level 10</small></div>" + '<button class="ghost sm" data-a="buy" data-x="' + id + '" data-y="' + i + '"' + (e.owned ? " disabled" : "") + ">" + (e.owned ? "Đã học" : esc(KM.money(e.price))) + "</button></div>"; }
-      else h += itemRow(s, e.id, '<button class="ghost sm" data-a="buy" data-x="' + id + '" data-y="' + i + '">' + esc(KM.money(e.price)) + "</button>");
+      else h += itemRow(s, e.id, '<button class="ghost sm" data-a="buy" data-x="' + id + '" data-y="' + i + '">' + esc(KM.money(e.price)) + "</button>", true);
     });
     if (id === "thu_quan" && !s.cls) h += '<p class="muted">Chưa có Võ Đạo nên chưa có bí kíp phù hợp.</p>';
     return h + "</div>";
@@ -425,14 +432,15 @@
       h += '<div class="slot"><span>' + esc(name) + "</span><div>" + (id ? "<b>" + esc(KM.ITEMS[id].name) + (s.enh[id] ? " +" + s.enh[id] : "") + "</b>" + qTag(KM.ITEMS[id].q) + '<br><small class="muted">' + esc(KM.itemLine(s, id)) + "</small>" : '<span class="muted">—</span>') + "</div>" + (id ? '<button class="ghost sm" data-a="unequip" data-x="' + sl + '">Tháo</button>' : "") + "</div>";
     });
     h += '</div><div class="panel"><h3>Hành trang</h3><p class="muted">Tiền: <b class="hot">' + esc(KM.money(s.money)) + "</b> · Ngựa: " + (s.horse ? esc(KM.HORSES[s.horse].name) + " [" + KM.HORSES[s.horse].q + "] ×" + KM.HORSES[s.horse].mult : "chưa có") + " · Mảnh Thiên Mạch Chân Giải: " + s.shards + "/3</p>";
-    const ids = Object.keys(s.inv);
+    h += '<label class="toggle"><input type="checkbox" data-a="toggleAuto"' + (s.opts && s.opts.autoEquip ? " checked" : "") + '> Tự mặc đồ tốt hơn khi nhặt được (tắt để tự so sánh và chọn)</label>';
+    const ids = Object.keys(s.inv).sort((a, b) => (KM.ITEMS[b].slot ? 1 : 0) - (KM.ITEMS[a].slot ? 1 : 0));
     if (!ids.length) h += '<p class="muted">Trống.</p>';
     ids.forEach((id) => {
       const it = KM.ITEMS[id];
       let btn = "";
       if (it.slot) btn = '<button class="ghost sm" data-a="equip" data-x="' + id + '"' + (KM.meets(s, it.req) ? "" : " disabled") + ">Trang bị</button>";
       else if (it.type === "use" && it.combat !== false || it.type === "use") btn = '<button class="ghost sm" data-a="use" data-x="' + id + '">Dùng</button>';
-      h += itemRow(s, id, '<div class="row"><small class="muted">×' + s.inv[id] + "</small>" + btn + "</div>");
+      h += itemRow(s, id, '<div class="row"><small class="muted">×' + s.inv[id] + "</small>" + btn + "</div>", true);
     });
     return h + "</div>";
   }

@@ -210,3 +210,8 @@ body.fighting #hud .hud-bars, body.fighting #hud .exp, body.fighting #hud .hud-m
 /* Diễn biến sau lựa chọn */
 .beat { margin-top: 14px; border-top: 1px dashed #b8332c88; padding-top: 12px; animation: rise .35s ease; scroll-margin-top: 120px }
 .beat .picked { font-weight: 700; margin: 0 0 8px; padding-left: 10px; border-left: 3px solid var(--seal) }
+
+/* So sánh trang bị */
+.cmp { display: flex; flex-wrap: wrap; gap: 3px 8px; margin-top: 4px; padding: 4px 6px; border-left: 2px solid var(--line); background: #ffffff06; border-radius: 2px; font-size: .76rem }
+.cmp small { width: 100%; color: var(--mist) } .cmp.better { border-color: var(--ok) } .cmp.worse { border-color: var(--seal) }
+.cmp b { color: var(--paper) } .cmp .up { color: #8fd8a8 } .cmp .down { color: #ff9a9a } .cmp .eq { color: var(--mist) }
