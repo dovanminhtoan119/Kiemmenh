@@ -92,7 +92,8 @@ figure.pt figcaption { font-size: .66rem; line-height: 1.15; color: #fff; text-s
 .act.flee { border-color: #5a3238 } .act.item { border-style: dashed }
 
 /* Chiến đấu */
-body.fighting .wrap { padding-bottom: 56vh }
+body.fighting .wrap { padding-bottom: 12px }
+body.fighting .ver { display: none }
 .arena { position: relative; margin-top: 6px; aspect-ratio: 660 / 240; border-radius: 3px; overflow: hidden; background: #000 }
 .arena .bg { filter: brightness(.7) }
 .foes { position: absolute; top: 34px; right: 10px; display: flex; gap: 8px; z-index: 2 }
@@ -162,3 +163,46 @@ textarea { width: 100%; background: var(--ink); border: 1px solid var(--line); b
 .wmap { width: 100%; height: auto; display: block; border-radius: 4px; margin: 6px 0 8px; font-family: var(--font) }
 .wmap .wnode:hover circle { stroke: var(--seal); stroke-width: 1 }
 .slot.sel { background: #2c2614; }
+
+/* ===== Khung chiến đấu 16:9 (đối thủ + hành động trong một màn hình) ===== */
+body.fighting #hud .hud-bars, body.fighting #hud .exp, body.fighting #hud .hud-meta { display: none }
+.cframe { position: relative; display: grid; grid-template-columns: 42% 58%; aspect-ratio: 16 / 9; width: min(100%, calc((100dvh - 64px) * 16 / 9)); margin: 4px auto 0;
+  background: var(--ink-2); border: 1px solid var(--line); border-radius: 4px; overflow: hidden; font-size: 12.5px; line-height: 1.35 }
+.cf-stage { position: relative; overflow: hidden; display: flex; flex-direction: column; justify-content: space-between; padding: 6px; gap: 6px; min-height: 0 }
+.cf-stage .bg { position: absolute; inset: 0; width: 100%; height: 100%; filter: brightness(.55) }
+.cf-over { position: relative; display: grid; gap: 5px; overflow-y: auto; min-height: 0 }
+.cf-foe, .cf-me { position: relative; display: flex; gap: 6px; align-items: flex-start; background: #0d0c0ad0; border: 1px solid var(--line); border-radius: 4px; padding: 4px 5px; cursor: pointer }
+.cf-me { cursor: default; border-color: #6a5a3a }
+.cf-foe.tg { border-color: var(--gold); box-shadow: inset 2px 0 0 var(--gold) } .cf-foe.dead { opacity: .4; filter: grayscale(1) }
+.cf-pt svg { width: 34px; height: 40px; display: block; border-radius: 3px; border: 1px solid #efe6cf88 }
+.cf-info { flex: 1; min-width: 0; display: grid; gap: 2px }
+.cf-name { display: flex; gap: 4px; align-items: center; white-space: nowrap; overflow: hidden } .cf-name b { overflow: hidden; text-overflow: ellipsis } .cf-name small { color: var(--mist) }
+.cf-name .rank { font-size: .68rem; padding: 0 4px }
+.cf-obs { margin-left: auto; flex: none; width: 18px; height: 18px; border-radius: 50%; border: 1px solid var(--gold); background: none; color: var(--gold); font-size: .7rem; line-height: 1; padding: 0 }
+.mb { position: relative; display: block; height: 12px; background: #000a; border-radius: 2px; overflow: hidden }
+.mb i { position: absolute; inset: 0 auto 0 0 } .mb.hp i { background: var(--hp) } .mb.kh i { background: var(--kh) } .mb.sta i { background: var(--sta) }
+.mb em { position: relative; font-style: normal; font-size: .64rem; padding-left: 4px; color: #fff; text-shadow: 0 1px 2px #000; line-height: 12px; display: block }
+.cf-st { font-size: .66rem; color: var(--mist); white-space: nowrap; overflow: hidden; text-overflow: ellipsis }
+.cf-ch { display: flex; flex-wrap: wrap; gap: 3px } .cf-ch i { font-style: normal; font-size: .62rem; padding: 0 4px; border-radius: 2px; background: #3a1e1a; color: #f0b4a8 } .cf-ch i.g { background: #1d3a2c; color: #9fe0b8 }
+.cf-side { display: flex; flex-direction: column; min-height: 0; border-left: 1px solid var(--line) }
+.cf-head { display: flex; gap: 6px; align-items: center; padding: 4px 8px; border-bottom: 1px solid var(--line); font-size: .74rem; color: var(--mist) } .cf-head b { color: var(--paper) }
+.cf-rr { margin-left: auto; display: flex; gap: 3px; align-items: center }
+.cf-log { flex: 1; min-height: 0; overflow-y: auto; padding: 4px 8px; font-size: .7rem; display: grid; align-content: start; gap: 1px; background: #0b0a08 }
+.cf-log .dice { color: #a9c9e8 } .cf-log .hit { color: #ffd27a } .cf-log .ouch { color: #ff9a9a } .cf-log .sep { color: var(--mist) } .cf-log .obs { color: #c9e8d6 }
+.cf-log .hist { margin-top: 4px; font-size: .66rem }
+.cf-acts { flex: none; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 3px; padding: 4px; border-top: 1px solid var(--line); max-height: 52%; overflow-y: auto }
+.ca { background: var(--ink-3); color: var(--paper); border: 1px solid var(--line); border-radius: 3px; padding: 3px 5px; text-align: left; display: grid; gap: 0; min-width: 0 }
+.ca b { font-size: .72rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis } .ca small { font-size: .62rem; color: var(--gold); white-space: nowrap; overflow: hidden; text-overflow: ellipsis }
+.ca:hover:not([disabled]) { border-color: var(--gold) } .ca[disabled] { opacity: .38; cursor: not-allowed }
+.ca.own { border-color: #6a5a2a } .ca.item { border-style: dashed } .ca.flee { border-color: #5a3238 }
+.cf-res { flex: none; padding: 6px 8px; border-top: 1px solid var(--gold); display: grid; gap: 4px; max-height: 60%; overflow-y: auto } .cf-res.lose { border-color: var(--seal) }
+.cf-res strong { font-size: 1rem } .cf-resl { font-size: .7rem; display: grid; gap: 1px } .cf-resl .dice { color: #a9c9e8 } .cf-resl .lvup { color: #9fe0b8 }
+.cf-res .primary { padding: 6px 12px } .cf-res .rankup { padding: 8px; margin: 0 } .cf-res .rankup h2 { font-size: 1rem; margin-bottom: 4px } .cf-res .choice { padding: 6px 8px; font-size: .78rem }
+/* Màn hình dọc hẹp: vẫn gói trong một màn hình, xếp chồng */
+@media (max-width: 640px) and (orientation: portrait) {
+  .cframe { aspect-ratio: auto; width: 100%; height: calc(100dvh - 68px); grid-template-columns: 1fr; grid-template-rows: 42% 58% }
+  .cf-side { border-left: 0; border-top: 1px solid var(--line) }
+}
+
+#tabs[hidden], #dock[hidden] { display: none }
+.cf-over { flex: 1 1 auto; min-height: 46px } .cf-me { flex: none }

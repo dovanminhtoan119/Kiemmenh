@@ -139,7 +139,8 @@
     A[a](nx, ny);
     if (UI.s && !UI.title) save();
     render();
-    if (["choose", "special", "go", "fightScene", "endFight", "step", "loc", "tab", "rank"].includes(a) || (a === "hubAct" && !UI.combat)) window.scrollTo({ top: 0, behavior: "instant" in window ? "instant" : "auto" });
+    const keep = ["alloc", "target", "reroll", "mapSel", "sellMode"].includes(a) || (a === "special" && (x === "trait" || x === "pick"));
+    if (!keep) window.scrollTo(0, 0);
   });
   document.addEventListener("change", (e) => { if (e.target.id === "impf") A.importFile(e); });
 
@@ -325,44 +326,48 @@
   function combatView() {
     const s = UI.s, c = UI.combat, d = KM.derived(s), tg = KM.combat.target(c);
     const place = (KM.SCENES[s.scene] && KM.SCENES[s.scene].place) || (s.travel ? "road" : (KM.hubOf(s) || {}).place) || "forest";
-    let h = '<div class="arena">' + KM.background(place, slotTime(s)) + '<div class="tchip">Lượt ' + c.round + (c.close ? " · đã áp sát" : " · mở màn") + "</div>" +
-      '<div class="foes">' + c.foes.map((f, i) => '<button class="fpt' + (f === tg ? " target" : "") + (f.hp <= 0 ? " dead" : "") + '" data-a="target" data-x="' + i + '" aria-label="Chọn ' + esc(f.name) + '">' + KM.portrait(f.portrait, f.name) + '<span class="hpb"><i style="width:' + Math.max(0, (f.hp / f.maxHP) * 100) + '%"></i></span></button>').join("") + "</div>" +
-      '<div class="mept">' + KM.portrait("shen") + "</div></div>";
-    h += '<div class="combat">';
+    const mini = (cur, max, cls) => '<span class="mb ' + cls + '"><i style="width:' + Math.max(0, Math.min(100, (cur / max) * 100)).toFixed(1) + '%"></i><em>' + Math.max(0, Math.floor(cur)) + "/" + Math.floor(max) + "</em></span>";
+    // Cột trái: sân đấu + đối thủ + Shen
+    let L = '<div class="cf-stage">' + KM.background(place, slotTime(s)) + '<div class="cf-over">';
     c.foes.forEach((f, i) => {
       const chips = [];
-      if (f.stun) chips.push("<i>Choáng</i>"); if (f.weak) chips.push("<i>Giảm công " + f.weak.pct * 100 + "% · " + f.weak.t + " lượt</i>"); if (f.burn) chips.push("<i>Bỏng " + f.burn + " lượt</i>");
-      Object.keys(f.cds).forEach((k) => f.cds[k] > 0 && chips.push('<i class="good">' + esc(k) + " hồi " + f.cds[k] + "</i>"));
-      h += '<div class="foe' + (f === tg ? " tg" : "") + (f.hp <= 0 ? " dead" : "") + '"><div class="foe-h"><b>' + esc(f.name) + "</b> " + rTag(f.rank) + ' <small class="muted">Lv ' + f.lv + " · " + esc(KM.WEAPON_TYPES[f.wtype].name) + '</small><span style="margin-left:auto" class="row"><button class="ghost sm" data-a="observe" data-x="' + i + '">Quan sát</button>' + (f.hp > 0 && f !== tg ? '<button class="ghost sm" data-a="target" data-x="' + i + '">Nhắm</button>' : "") + "</span></div>" +
-        bar("foehp", f.hp, f.maxHP, "HP") + (chips.length ? '<div class="chips">' + chips.join("") + "</div>" : "") + "</div>";
+      if (f.stun) chips.push("Choáng"); if (f.weak) chips.push("−" + f.weak.pct * 100 + "% công " + f.weak.t + "l"); if (f.burn) chips.push("Bỏng " + f.burn + "l");
+      const cds = Object.keys(f.cds).filter((k) => f.cds[k] > 0).map((k) => k + " " + f.cds[k]);
+      L += '<div class="cf-foe' + (f === tg ? " tg" : "") + (f.hp <= 0 ? " dead" : "") + '" data-a="target" data-x="' + i + '">' + '<span class="cf-pt">' + KM.portrait(f.portrait, f.name) + "</span>" +
+        '<div class="cf-info"><div class="cf-name"><b>' + esc(f.name) + "</b> " + rTag(f.rank) + " <small>Lv " + f.lv + "</small>" + '<button class="cf-obs" data-a="observe" data-x="' + i + '" aria-label="Quan sát ' + esc(f.name) + '">?</button></div>' +
+        mini(f.hp, f.maxHP, "hp") + '<div class="cf-st">' + esc(KM.WEAPON_TYPES[f.wtype].name) + " · Công " + Math.round(f.d.patk) + " · Giáp " + f.d.pdef + " · Né " + f.d.eva + "% · CM " + f.d.crit + "%</div>" +
+        (chips.length || cds.length ? '<div class="cf-ch">' + chips.map((x) => "<i>" + esc(x) + "</i>").join("") + cds.map((x) => '<i class="g">' + esc(x) + "</i>").join("") + "</div>" : "") + "</div></div>";
     });
-    if (UI.obs) h += msgsBox(UI.obs);
-    const meChips = [];
-    if (c.kt) meChips.push('<i class="good">Khí Thế ' + c.kt + "</i>"); if (c.poison) meChips.push("<i>Trúng độc " + c.poison + " lượt</i>");
-    if (c.buf.guardT > 0) meChips.push('<i class="good">Giảm ' + c.buf.guard * 100 + "% sát thương · " + c.buf.guardT + " lượt</i>"); if (c.buf.evaT > 0) meChips.push('<i class="good">Né +' + c.buf.eva + "% · " + c.buf.evaT + " lượt</i>");
-    h += '<div class="foe"><div class="foe-h"><b>Shen</b> ' + rTag(s.rank) + ' <small class="muted">' + esc(KM.WEAPON_TYPES[KM.weaponType(s)].name) + " · Công " + d.patk + " · Nội công lực " + d.npow + " · Giáp " + d.pdef + " · Né " + d.eva + "% · Chí mạng " + d.crit + "%</small></div>" + (meChips.length ? '<div class="chips">' + meChips.join("") + "</div>" : "") + "</div>";
-    if (c.log.length) h += '<div class="clog">' + c.log.map((l) => '<div class="' + (/^—/.test(l) ? "sep" : /^(Né|Chí mạng|Choáng|Bỏng|Trúng độc|Bỏ chạy).*d100/.test(l) ? "dice" : /→ .*sát thương/.test(l) ? "hit" : /−\d+ HP/.test(l) ? "ouch" : "") + '">' + esc(l) + "</div>").join("") + "</div>";
-    if (c.hist.length > 1) h += '<details class="hist"><summary>Nhật ký các lượt trước</summary>' + c.hist.slice(0, -1).reverse().map((r) => '<div class="hr"><b>Lượt ' + r.round + "</b><br>" + r.lines.map(esc).join("<br>") + "</div>").join("") + "</details>";
-    h += "</div>";
-    return h;
-  }
-  function dock() {
-    const s = UI.s, c = UI.combat;
+    const me = [];
+    if (c.kt) me.push("Khí Thế " + c.kt); if (c.poison) me.push("Độc " + c.poison + "l"); if (c.buf.guardT > 0) me.push("Giảm " + c.buf.guard * 100 + "% · " + c.buf.guardT + "l"); if (c.buf.evaT > 0) me.push("Né +" + c.buf.eva + "% · " + c.buf.evaT + "l");
+    L += '</div><div class="cf-me"><span class="cf-pt">' + KM.portrait("shen") + '</span><div class="cf-info"><div class="cf-name"><b>Shen</b> ' + rTag(s.rank) + " <small>Lv " + s.level + "</small></div>" +
+      mini(s.cur.hp, d.maxHP, "hp") + mini(s.cur.kh, d.maxKH, "kh") + mini(s.cur.sta, d.maxSTA, "sta") +
+      '<div class="cf-st">' + esc(KM.WEAPON_TYPES[KM.weaponType(s)].name) + " · Công " + d.patk + " · Giáp " + d.pdef + " · Né " + d.eva + "% · CM " + d.crit + "%</div>" +
+      (me.length ? '<div class="cf-ch">' + me.map((x) => '<i class="g">' + esc(x) + "</i>").join("") + "</div>" : "") + "</div></div></div>";
+    // Cột phải: nhật ký + hành động
+    let R = '<div class="cf-side"><div class="cf-head"><b>Lượt ' + c.round + "</b> · " + (c.close ? "đã áp sát" : "mở màn") +
+      (c.rerolls > 0 || c.rerollOn ? '<label class="cf-rr"><input type="checkbox" data-a="reroll"' + (c.rerollOn ? " checked" : "") + "> Gieo lại (" + c.rerolls + ")</label>" : "") + "</div>";
+    const logLines = (UI.obs ? UI.obs.map((l) => ({ t: l, k: "obs" })) : []).concat(c.log.map((l) => ({ t: l, k: /^—/.test(l) ? "sep" : /^(Né|Chí mạng|Choáng|Bỏng|Trúng độc|Bỏ chạy).*d100/.test(l) ? "dice" : /→ .*sát thương/.test(l) ? "hit" : /−\d+ HP/.test(l) ? "ouch" : "" })));
+    R += '<div class="cf-log">' + (logLines.length ? logLines.map((l) => '<div class="' + l.k + '">' + esc(l.t) + "</div>").join("") : '<div class="sep">Chọn hành động. Bấm vào đối thủ để nhắm, nút ? để quan sát (không mất lượt).</div>') +
+      (c.hist.length > 1 ? '<details class="hist"><summary>Các lượt trước</summary>' + c.hist.slice(0, -1).reverse().map((r) => '<div class="hr"><b>Lượt ' + r.round + "</b><br>" + r.lines.map(esc).join("<br>") + "</div>").join("") + "</details>" : "") + "</div>";
     if (c.over) {
       const t = c.over === "win" ? "Chiến thắng" : c.over === "flee" ? "Đã thoát" : "Thất bại";
-      return '<div class="result' + (c.over === "lose" ? " lose" : "") + '"><strong>' + t + "</strong>" + (UI.cmsgs || []).map((m) => '<div class="' + msgClass(m) + '">' + esc(m) + "</div>").join("") + (s.pendingRank ? rankView() : '<button class="primary" data-a="endFight">Tiếp tục</button>') + "</div>";
+      R += '<div class="cf-res' + (c.over === "lose" ? " lose" : "") + '"><strong>' + t + '</strong><div class="cf-resl">' + (UI.cmsgs || []).map((m) => '<div class="' + msgClass(m) + '">' + esc(m) + "</div>").join("") + "</div>" +
+        (s.pendingRank ? rankView() : '<button class="primary" data-a="endFight">Tiếp tục</button>') + "</div>";
+    } else {
+      const rd = KM.combat.ready(s, c);
+      R += '<div class="cf-acts">' + rd.map((x) => {
+        const sk = x.sk, mult = sk.mult ? "×" + sk.mult + (sk.hits ? "×" + sk.hits : "") + (sk.aoe ? "·" + sk.aoe + "đ" : "") : "";
+        const cost = sk.cost ? (sk.cost.sta ? sk.cost.sta + "TL" : sk.cost.kh + "KH") : "";
+        const tip = (x.ok ? (x.id === "danh_thuong" ? KM.WEAPON_TYPES[KM.weaponType(s)].desc : sk.desc) : x.why) + " · " + (KM.skillLine(s, x.id) || "");
+        return '<button class="ca' + (x.id === "own" ? " own" : "") + '" data-a="act" data-x="skill" data-y="' + x.id + '"' + (x.ok ? "" : " disabled") + ' title="' + esc(tip) + '"><b>' + esc(sk.name) + "</b><small>" + esc([mult, cost, x.cd > 0 ? "hồi " + x.cd : sk.cd ? "cd " + sk.cd : ""].filter(Boolean).join(" · ") || "—") + "</small></button>";
+      }).join("");
+      R += '<button class="ca" data-a="act" data-x="gap" title="Lùi lại; lượt sau tính như lượt mở màn"><b>Giãn cách</b><small>lùi lại</small></button>';
+      ["dai_hoan", "kim_sang", "hoi_khi", "giai_doc"].forEach((k) => { if (s.inv[k]) R += '<button class="ca item" data-a="act" data-x="item" data-y="' + k + '" title="' + esc(KM.ITEMS[k].desc) + '"><b>' + esc(KM.ITEMS[k].name) + "</b><small>×" + s.inv[k] + "</small></button>"; });
+      R += '<button class="ca flee" data-a="act" data-x="flee"' + (c.opts.canFlee === false ? " disabled" : "") + '><b>Bỏ chạy</b><small>' + (c.opts.canFlee === false ? "không thể" : "d100") + "</small></button></div>";
     }
-    const rd = KM.combat.ready(s, c);
-    let h = '<div class="ready">Sẵn sàng: <b>' + (rd.filter((x) => x.ok).map((x) => esc(x.sk.name)).join(", ") || "—") + "</b>" + (rd.some((x) => x.cd > 0) ? " · Đang hồi: " + rd.filter((x) => x.cd > 0).map((x) => esc(x.sk.name) + " (" + x.cd + ")").join(", ") : "") + "</div>";
-    if (c.rerolls > 0 || c.rerollOn) h += '<label class="toggle"><input type="checkbox" data-a="reroll"' + (c.rerollOn ? " checked" : "") + "> Cơ Duyên: tự gieo lại khi thất bại (còn " + c.rerolls + " lần)</label>";
-    h += '<div class="acts">' + rd.map((x) => {
-      const sk = x.sk, mult = sk.mult ? "×" + sk.mult + (sk.hits ? "×" + sk.hits : "") + (sk.aoe ? " · " + sk.aoe + " địch" : "") : "";
-      return '<button class="act" data-a="act" data-x="skill" data-y="' + x.id + '"' + (x.ok ? "" : " disabled") + "><span>" + esc(sk.name) + (x.id === "own" ? ' <small class="hot">Mạch Ẩn</small>' : "") + "</span><small>" + esc((mult ? mult + " · " : "") + (KM.skillLine(s, x.id) || "")) + '</small><span class="fx">' + esc(x.ok ? (x.id === "danh_thuong" ? KM.WEAPON_TYPES[KM.weaponType(s)].desc : sk.desc) : x.why) + "</span></button>";
-    }).join("");
-    h += '<button class="act" data-a="act" data-x="gap"><span>Giãn cách</span><span class="fx">Lùi lại; lượt sau tính như lượt mở màn</span></button>';
-    ["dai_hoan", "kim_sang", "hoi_khi", "giai_doc"].forEach((k) => { if (s.inv[k]) h += '<button class="act item" data-a="act" data-x="item" data-y="' + k + '"><span>' + esc(KM.ITEMS[k].name) + " ×" + s.inv[k] + '</span><span class="fx">' + esc(KM.ITEMS[k].desc) + "</span></button>"; });
-    h += '<button class="act flee" data-a="act" data-x="flee"' + (c.opts.canFlee === false ? " disabled" : "") + "><span>Bỏ chạy</span><span class=\"fx\">" + (c.opts.canFlee === false ? "Không có đường lui" : "Gieo d100 theo chênh lệch Thân Pháp") + "</span></button></div>";
-    return h;
+    R += "</div>";
+    return '<div class="cframe">' + L + R + "</div>";
   }
 
   /* ---------------- Các tab ---------------- */
@@ -462,7 +467,8 @@
     const s = UI.s;
     $("#hud").innerHTML = hud();
     let main = "";
-    document.body.classList.toggle("fighting", !!UI.combat && UI.tab === "story");
+    document.body.classList.toggle("fighting", !!UI.combat);
+    if (UI.combat) UI.tab = "story";
     if (UI.title || !s) main = titleView();
     else if (UI.tab === "story") {
       if (UI.combat) main = combatView();
@@ -473,9 +479,9 @@
     } else main = { char: charView, skills: skillsView, bag: bagView, quest: questView, rel: relView, ledger: ledgerView, save: saveView }[UI.tab]();
     $("#main").innerHTML = main;
     const dk = $("#dock");
-    if (UI.combat && UI.tab === "story") { dk.hidden = false; dk.innerHTML = dock(); } else { dk.hidden = true; dk.innerHTML = ""; }
+    dk.hidden = true; dk.innerHTML = "";
     const tabs = $("#tabs");
-    tabs.hidden = UI.title || !s;
+    tabs.hidden = UI.title || !s || !!UI.combat;
     if (!tabs.hidden) tabs.innerHTML = TABS.map(([k, n]) => '<button class="' + (UI.tab === k ? "on" : "") + '" data-a="tab" data-x="' + k + '">' + n + (k === "char" && s.unalloc ? "<i></i>" : "") + "</button>").join("");
   }
   window.KMrender = render;
