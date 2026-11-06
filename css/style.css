@@ -155,3 +155,10 @@ textarea { width: 100%; background: var(--ink); border: 1px solid var(--line); b
 #tabs button i { position: absolute; top: 7px; right: 18%; width: 6px; height: 6px; border-radius: 50%; background: var(--gold) }
 @media (max-width: 420px) { figure.pt, figure.pt svg { width: 50px } figure.pt svg { height: 58px } .fpt { width: 66px; height: 78px } .mept { width: 56px; height: 66px } .scene { padding: 18px 12px 12px 20px } }
 @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important } }
+
+/* Nhiệm vụ nhánh & bản đồ thế giới */
+.qb { font-style: normal; font-size: .72rem; background: var(--gold); color: var(--ink); border-radius: 50%; padding: 0 6px; margin-left: 4px } .qb.done { background: var(--ok) }
+.act.quest { border-color: #6a5a2a; background: linear-gradient(160deg, #2c2614, var(--ink-3)) }
+.wmap { width: 100%; height: auto; display: block; border-radius: 4px; margin: 6px 0 8px; font-family: var(--font) }
+.wmap .wnode:hover circle { stroke: var(--seal); stroke-width: 1 }
+.slot.sel { background: #2c2614; }

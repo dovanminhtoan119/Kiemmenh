@@ -64,7 +64,7 @@
         "Long Chấn Uy đập vỡ chén trà trong tay. Nhưng nửa số tiêu sư giỏi nhất đang áp tiêu xa, chưa về.",
         "> Shen. Ta biết ngươi mới tới. Nhưng Hắc Phong Sơn chỉ cách một ngày đường. Ngươi có dám đi không?",
       ],
-      onEnter: { flag: "kidnap_seen", quest: { q_cuu_phuong: { name: "Cứu Long Phượng Nhi", desc: "Tới Hắc Phong Sơn (1 ngày đường từ Lạc Hà), cứu con gái tiêu chủ khỏi tay sơn tặc." } } },
+      onEnter: { flag: "kidnap_seen", mark: "kidnap", quest: { q_cuu_phuong: { name: "Cứu Long Phượng Nhi", desc: "Tới Hắc Phong Sơn (1 ngày đường từ Lạc Hà), cứu con gái tiêu chủ khỏi tay sơn tặc. Quá 6 ngày, tiêu cục sẽ phải nộp tiền chuộc.", dueDays: 6 } } },
       choices: [
         { t: "\"Tôi đi.\"", go: "@hub", eff: { aff: { long_tieu_chu: 10 }, rep: { long_mon: 10 }, moral: 3 } },
         { t: "\"Tôi đi. Nhưng cần tiền thuốc men trước.\"", go: "@hub", eff: { money: 1000, anti: 1 } },
@@ -125,7 +125,7 @@
         "> Ta lôi được một thằng bé bảy tuổi ra khỏi đống đổ nát, cõng nó lên Thanh Vân. Ngươi đoán xem thằng bé đó là ai?",
         "> Còn một chuyện nữa. Tên thủy phỉ Hắc Giao trên sông này đang buôn độc dược cho một tổ chức tên Huyết Ảnh Lâu. Độc châm của bọn sát thủ đêm đó cũng là loại độc ấy. Nếu ngươi muốn bắt đầu từ đâu, hãy bắt đầu từ hắn.",
       ],
-      onEnter: { flag: "laoho_1", aff: { lao_ho: 5 }, exp: 800, quest: { q_hac_giao: { name: "Thủy phỉ Hắc Giao", desc: "Dò ra thủy trại của Hắc Giao (ban đêm ở bến sông, hoặc mua tin ở chợ đen) rồi tấn công." } },
+      onEnter: { flag: "laoho_1", aff: { lao_ho: 5 }, exp: 800, quest: { q_hac_giao: { name: "Thủy phỉ Hắc Giao", desc: "Dò ra thủy trại của Hắc Giao (ban đêm ở bến sông, hoặc mua tin ở chợ đen) rồi tấn công. Lão Hồ nghe nói hắn sắp nhổ trại rời Lạc Hà.", dueFrom: "arrive", dueDays: 24 } },
         ledger: { actor: "Lão Hồ", action: "Kể rằng dấu Thiên Ma Chưởng ở Thẩm gia trang là giả", target: "—", witness: "Shen", pending: "Kẻ làm giả dấu chưởng vẫn đứng ngoài ánh sáng", trigger: "Võ Lâm Đại Hội (Arc 3)" } },
       choices: [{ t: "Siết chặt bát rượu", go: "@hub" }] },
     a2_laoho_2: { chapter: "Arc 2", title: "Thẩm Kiếm Phong", place: "inn", time: "night", cast: ["shen", "lao_ho"],
@@ -244,6 +244,24 @@
     a2_assassin_lose: { chapter: "Arc 2", title: "Thoát chết", place: "inn", time: "night", cast: ["shen", "lao_ho"],
       text: ["Lưỡi kiếm sắp đâm xuống thì một cây gậy trúc xanh từ đâu bay tới, đánh bật nó đi. Sát thủ biến mất qua cửa sổ.", "> Ngủ cũng phải để một mắt mở chứ, thằng ngốc. — tiếng Lão Hồ vọng từ mái nhà."],
       onEnter: { aff: { lao_ho: 5 } }, choices: [{ t: "…", go: "@hub" }] },
+
+    a2_kidnap_late: { chapter: "Arc 2", title: "Tiền chuộc", place: "yard2", time: "day", cast: ["shen", "long_tieu_chu"],
+      text: [
+        "Tin từ Long Môn truyền tới: quá hạn chờ, Long Chấn Uy đã bán hai xe hàng, mang năm trăm lượng bạc lên Hắc Phong Trại chuộc con gái.",
+        "Long Phượng Nhi được thả về, gầy rộc, không nói một lời với ai. Khi gặp Shen, tiêu chủ chỉ gật đầu một cái rồi quay đi.",
+      ],
+      onEnter: { quest: { q_cuu_phuong: "fail" }, rep: { long_mon: -40 }, aff: { long_tieu_chu: -10, phuong_nhi: -10 }, flag: "phuong_ransomed",
+        ledger: { actor: "Long Môn Tiêu Cục", action: "Nộp tiền chuộc Long Phượng Nhi cho Hắc Phong Trại", target: "Hắc Phong Trại", witness: "Cả trấn Lạc Hà", pending: "Hắc Phong Trại giàu lên, càng lộng hành", trigger: "—" } },
+      choices: [{ t: "…", go: "@hub" }] },
+    a2_hacgiao_gone: { chapter: "Arc 2", title: "Thủy trại bỏ trống", place: "river", time: "dusk", cast: ["shen", "lao_ho"],
+      text: [
+        "Sáng nay dân chài kéo nhau ra bến: thủy trại dưới vách đá chỉ còn trơ cọc gỗ. Hắc Giao đã nhổ trại trong đêm, xuôi dòng về phía đông, mang theo cả cuốn sổ.",
+        "Lão Hồ ngồi trên mũi thuyền, nhổ toẹt xuống nước.",
+        "> Chậm một bước. Thôi, sông nào rồi cũng chảy về Kim Lăng. Đằng nào cũng phải gặp lại.",
+      ],
+      onEnter: { quest: { q_hac_giao: "fail" }, flag: "hac_giao_gone",
+        ledger: { actor: "Hắc Giao", action: "Rời Lạc Hà xuôi về Kim Lăng, mang theo sổ sách độc dược", target: "—", witness: "Dân chài", pending: "Manh mối Thẩm gia trang trôi về Kim Lăng", trigger: "Arc 3 · Kim Lăng" } },
+      choices: [{ t: "Về khách điếm", go: "a2_choice" }] },
 
     /* ---------- Kết Arc 2 ---------- */
     a2_choice: { chapter: "Arc 2 · Kết", title: "Ngã rẽ", place: "inn", time: "day", cast: ["shen", "lao_ho"],

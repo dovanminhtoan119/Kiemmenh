@@ -54,13 +54,17 @@
   };
 
   /* ---------------- Sự kiện tự kích hoạt khi vào khu tự do ---------------- */
+  KM.A1_DEADLINE = 10;      // hội đồng xét xử sáng ngày 10 (9 ngày tự do)
+  KM.A2_HACGIAO_DAYS = 24;  // Hắc Giao rời Lạc Hà sau 24 ngày kể từ khi Shen tới
   KM.hubTrigger = function (s) {
     if (s.level >= 5 && !s.ownArt) return "a1_interview";
     if (s.level >= 5 && !s.cls) return "x_class";
     if (s.cls === "quyen_ngoai" && !s.hidden && !KM.has(s, "declined_kimthan") && s.level < 10 && KM.eff(s).VIT >= 20 && !s.skills.some((k) => KM.SKILLS[k] && KM.SKILLS[k].src === "n")) return "x_hidden_kimthan";
     if (KM.hasTrait(s, "kiem_ma") && s.cls && s.cls.startsWith("kiem") && !s.hidden && !KM.has(s, "declined_kiemma") && KM.has(s, "killed_higher_sword")) return "x_hidden_kiemma";
-    if (s.place === "thanh_van" && !KM.has(s, "a1_done") && s.day >= 8) return "a1_trial";
+    if (!KM.has(s, "a1_done") && s.day >= KM.A1_DEADLINE) return "a1_trial";
     if (s.place === "lac_ha" && KM.has(s, "tieu_su") && !KM.has(s, "kidnap_seen") && s.day >= (s.marks.tieu || 99) + 2) return "a2_kidnap";
+    if (s.quests.q_cuu_phuong && s.quests.q_cuu_phuong.st === "active" && s.day > s.quests.q_cuu_phuong.deadline && s.place !== "hac_phong") return "a2_kidnap_late";
+    if (KM.has(s, "arrived_lac_ha") && !KM.has(s, "hac_giao_down") && !KM.has(s, "hac_giao_gone") && s.day > (s.marks.arrive || 0) + KM.A2_HACGIAO_DAYS) return "a2_hacgiao_gone";
     return null;
   };
 
@@ -91,23 +95,23 @@
   KM.HUBS = {
     /* ================= THANH VÂN ================= */
     thanh_van: {
-      name: "Thanh Vân Sơn", place: "mountain_gate",
+      name: "Thanh Vân Sơn", place: "mountain_gate", note: (s) => KM.has(s, "tv_banned") ? "Shen bị cấm vào sơn môn. Chỉ có thể quanh quẩn rừng sau núi và thác Bạch Long." : KM.has(s, "a1_done") ? "Shen trở về Thanh Vân với tư cách khách. Người trên núi nhìn cậu đã khác." : "",
       locs: [
-        { id: "phong", name: "Phòng tạp dịch", art: "room", desc: "Căn phòng ẩm thấp Shen ở chung với Tiểu Lục.", actions: [
+        { id: "phong", name: "Phòng tạp dịch", art: "room", show: (s) => !KM.has(s, "tv_banned"), desc: "Căn phòng ẩm thấp Shen ở chung với Tiểu Lục.", actions: [
           { t: "Nghỉ đêm", cost: 0, run: (s) => R(KM.sleep(s)) },
           { t: "Trò chuyện với Tiểu Lục", show: (s) => !night(s), run: (s) => {
             if (!once(s, "today_tl")) return R(["Hôm nay đã trò chuyện rồi."], { free: true });
             const m = KM.apply(s, { aff: { tieu_luc: 5 } });
-            if ((s.aff.tieu_luc || 0) >= 20 && s.day >= 3 && !s.clues.includes("c_nhan_chung")) return R(m, { scene: "a1_witness" });
+            if ((s.aff.tieu_luc || 0) >= 20 && s.day >= 3 && !s.clues.includes("c_nhan_chung") && !KM.has(s, "a1_done")) return R(m, { scene: "a1_witness" });
             m.push("Tiểu Lục kể đủ thứ chuyện vặt trên núi." + ((s.aff.tieu_luc || 0) < 20 ? " Có vẻ cậu ta vẫn đang giấu điều gì." : ""));
             return R(m);
           } },
           { t: "Bày chứng cứ, tính chuyện đối chất", cost: 0, show: (s) => !KM.has(s, "a1_done") && (s.clues.length >= 2 || KM.has(s, "saw_shadow")), run: () => R([], { scene: "a1_confront" }) },
         ] },
-        { id: "hau_tru", name: "Hậu trù", art: "kitchen", when: "day", desc: "Bếp lớn của phái. Việc không bao giờ hết.", actions: [
+        { id: "hau_tru", name: "Hậu trù", art: "kitchen", when: "day", show: (s) => !KM.has(s, "tv_banned"), desc: "Bếp lớn của phái. Việc không bao giờ hết.", actions: [
           { t: "Làm việc vặt (bổ củi, gánh nước)", run: (s) => R(["Shen bổ hết ba gánh củi. Mồ hôi đổ ra, gân cốt nóng lên."].concat(KM.apply(s, { money: 40, exp: 30 + 8 * s.level, trend: { thu: 1, minh: 1 }, aff: { tieu_luc: 2 } }))) },
         ] },
-        { id: "dien_vo", name: "Diễn võ trường", art: "yard", when: "day", desc: "Sân tập đá xanh. Đệ tử ngoại môn tập buổi sáng, nội môn tập buổi chiều.", actions: [
+        { id: "dien_vo", name: "Diễn võ trường", art: "yard", when: "day", show: (s) => !KM.has(s, "tv_banned"), desc: "Sân tập đá xanh. Đệ tử ngoại môn tập buổi sáng, nội môn tập buổi chiều.", actions: [
           { t: "Luyện công một mình", run: (s) => R(["Shen tập một mình ở góc sân."].concat(trainSkill(s), KM.apply(s, { exp: 40 + trainExp(s, 0.1), trend: { cong: 1 } }))) },
           { t: "Tỉ thí với Lý Tam", sub: "Rank E · Lv 2", run: (s) => R(["Lý Tam nhổ nước bọt: \"Lần này tao không nương tay.\""], { fight: { foes: ["ly_tam"], opts: { solo: true } } }) },
           { t: "Tỉ thí với đệ tử nội môn", sub: "Rank E · Lv 6", req: { lv: 4 }, run: (s) => R(["Một đệ tử nội môn nhếch mép nhận lời."], { fight: { foes: ["de_tu_noi"], opts: { solo: true } } }) },
@@ -116,7 +120,7 @@
             return R(["Hàn giáo đầu chỉ ra ba chỗ sơ hở trong thế đứng của Shen."].concat(KM.apply(s, { meet: "han_giao_dau", aff: { han_giao_dau: 4 }, exp: trainExp(s, 0.08) + 30 })));
           } },
         ] },
-        { id: "duoc_phong", name: "Dược phòng", art: "medic", when: "day", desc: "Tô Vân Yên ở nhờ đây, phơi thuốc kín cả hiên.", actions: [
+        { id: "duoc_phong", name: "Dược phòng", art: "medic", when: "day", show: (s) => !KM.has(s, "a1_done"), desc: "Tô Vân Yên ở nhờ đây, phơi thuốc kín cả hiên.", actions: [
           { t: "Gặp Tô Vân Yên", run: (s) => {
             if (!once(s, "today_yen")) return R(["Tô Vân Yên đang bận sắc thuốc."], { free: true });
             const d = KM.derived(s), b = s.cur.hp; s.cur.hp = Math.min(d.maxHP, s.cur.hp + Math.floor(d.maxHP * 0.5));
@@ -127,14 +131,15 @@
         ] },
         { id: "rung", name: "Rừng sau núi", art: "forest", desc: "Ban ngày có sói và heo rừng. Ban đêm… có những thứ khác.", actions: [
           { t: "Săn thú", show: day, run: (s) => R(["Shen men theo lối mòn vào rừng."], { fight: { foes: hunt1(s), opts: {} } }) },
-          { t: "Rình ở gốc tùng rỗng", show: (s) => night(s) && KM.has(s, "saw_shadow") && !s.clues.includes("c_thu_mat") && !KM.has(s, "shadow_failed"), run: () => R([], { scene: "a1_shadow" }) },
-          { t: "Lang thang trong rừng đêm", show: (s) => night(s) && !KM.has(s, "saw_shadow"), run: (s) => {
+          { t: "Ngủ ngoài trời dưới chân núi", cost: 0, show: (s) => KM.has(s, "tv_banned"), run: (s) => R(["Shen nhóm lửa dưới gốc tùng, ngủ chập chờn."].concat(KM.sleep(s))) },
+          { t: "Rình ở gốc tùng rỗng", show: (s) => night(s) && !KM.has(s, "a1_done") && KM.has(s, "saw_shadow") && !s.clues.includes("c_thu_mat") && !KM.has(s, "shadow_failed"), run: () => R([], { scene: "a1_shadow" }) },
+          { t: "Lang thang trong rừng đêm", show: (s) => night(s) && !KM.has(s, "saw_shadow") && !KM.has(s, "a1_done"), run: (s) => {
             const r = KM.check(s, "WIS", 13, KM.hasTrait(s, "linh_giac") ? 4 : 0);
             if (r.ok) { KM.flag(s, "saw_shadow"); return R([r.line, "Gần gốc tùng rỗng, Shen thấy một bóng đen lướt qua, rồi một người áo xanh. Đêm khác quay lại rình."]); }
             return R([r.line, "Chỉ có tiếng cú kêu. Một con sói lao ra từ bụi rậm!"], { fight: { foes: ["soi_xam"], opts: {} } });
           } },
         ] },
-        { id: "dong_vien", name: "Đông viện", art: "room", when: "night", desc: "Nơi ở của đệ tử nội môn. Phòng Tiêu Hạo ở cuối dãy.", actions: [
+        { id: "dong_vien", name: "Đông viện", art: "room", when: "night", show: (s) => !KM.has(s, "a1_done"), desc: "Nơi ở của đệ tử nội môn. Phòng Tiêu Hạo ở cuối dãy.", actions: [
           { t: "Lẻn vào phòng Tiêu Hạo", sub: "kiểm tra Thân Pháp, độ khó 13", show: (s) => !s.clues.includes("c_tro"), run: (s) => {
             const r = KM.check(s, "AGI", 13, KM.hasTrait(s, "anh_tu") ? 5 : 0);
             return R([r.line], { scene: r.ok ? "a1_clue_room" : "a1_caught" });
@@ -148,7 +153,7 @@
             return R(["Lần thứ " + s.visits.thac + ". Giữa tiếng nước, Shen ngờ ngợ nghe một tiếng ngân rất khẽ, rồi tắt."]);
           } },
         ] },
-        { id: "tap_hoa", name: "Tạp hóa sơn môn", art: "market", when: "day", desc: "Gian hàng nhỏ bán đồ dùng cho đệ tử.", actions: [
+        { id: "tap_hoa", name: "Tạp hóa sơn môn", art: "market", when: "day", show: (s) => !KM.has(s, "tv_banned"), desc: "Gian hàng nhỏ bán đồ dùng cho đệ tử.", actions: [
           { t: "Xem hàng", cost: 0, run: () => R([], { shop: "tap_hoa" }) },
         ] },
       ],
@@ -194,9 +199,9 @@
             if (r <= 60) return R(m, { fight: { foes: KM.die(s, 3) === 3 ? ["cuop_duong", "cuop_duong"] : ["cuop_duong"], opts: { road: true }, after: (s2, won) => won ? KM.apply(s2, pay) : ["Hàng bị cướp mất một nửa. Không có tiền công."] } });
             return R(m.concat(KM.apply(s, pay)));
           } },
-          { t: "Nhận chuyến tiêu đi Phong Lâm", sub: "3 ngày đường, hạn 4 ngày", show: (s) => KM.has(s, "tieu_su") && !s.tieuRun && !s.quests.q_phong_lam, cost: 0, run: (s) => {
-            s.tieuRun = { due: s.day + 4 };
-            return R(KM.apply(s, { quest: { q_phong_lam: { name: "Chuyến tiêu Phong Lâm", desc: "Giao hàng tới trạm tiêu Phong Lâm trước hết ngày " + (s.day + 4) + ". Đi bộ mất 3 ngày; có ngựa sẽ nhanh hơn." } } }).concat(["Mở Bản đồ để lên đường."]));
+          { t: "Nhận chuyến tiêu đi Phong Lâm", sub: "3 ngày đường, hạn 5 ngày", show: (s) => KM.has(s, "tieu_su") && !s.tieuRun && !s.quests.q_phong_lam, cost: 0, run: (s) => {
+            s.tieuRun = { due: s.day + 5 };
+            return R(KM.apply(s, { quest: { q_phong_lam: { name: "Chuyến tiêu Phong Lâm", desc: "Giao hàng tới trạm tiêu Phong Lâm trước hết ngày " + (s.day + 5) + ". Đi bộ mất 3 ngày; có ngựa sẽ nhanh hơn.", deadline: s.day + 5 } } }).concat(["Mở Bản đồ để lên đường."]));
           } },
           { t: "Luyện võ với tiêu sư", run: (s) => R(["Shen đấu tập với mấy tiêu sư già."].concat(trainSkill(s), KM.apply(s, { exp: 40 + trainExp(s, 0.1) }))), show: (s) => KM.has(s, "tieu_su") },
         ] },
@@ -232,23 +237,65 @@
       ],
     },
 
+    /* ================= THÔN HẠNH HOA ================= */
+    hanh_hoa: {
+      name: "Thôn Hạnh Hoa", place: "village",
+      locs: [
+        { id: "gieng", name: "Giếng làng", art: "village", desc: "Nơi dân thôn tụ tập. Trưởng thôn Lưu hay ngồi dưới gốc hạnh.", actions: [
+          { t: "Hỏi chuyện dân làng", show: (s) => s.slot <= 1, run: (s) => {
+            if (!once(s, "today_hh_hoi")) return R(["Dân làng đã ra đồng hết."], { free: true });
+            return R(["Một bà lão kể: \"" + pick(s, ["Heo rừng năm nay nhiều lắm, phá sạch ruộng khoai.", "Đường lên Thanh Vân dạo này hay có người lạ qua lại, áo đen cả.", "Miếu Thổ Địa trên dốc linh lắm, cầu gì được nấy.", "Thằng Hạ Tứ đi săn giỏi nhất thôn, mà dạo này bị bọn sơn tặc đuổi khỏi lán."]) + "\""].concat(KM.apply(s, { exp: 20 + 3 * s.level, rep: { hanh_hoa: 3 } })));
+          } },
+        ] },
+        { id: "quan_tra", name: "Quán trà đầu thôn", art: "inn", desc: "Quán trà nhỏ của bà Tư. Có mấy gian trọ cho khách qua đường.", actions: [
+          { t: "Trọ lại qua đêm", sub: "5 đồng", cost: 0, run: (s) => R(KM.apply(s, { money: -Math.min(5, s.money) }).concat(KM.sleep(s))) },
+          { t: "Uống trà nghỉ chân", sub: "2 đồng · hồi 20% HP", run: (s) => { const d = KM.derived(s), b = s.cur.hp; s.cur.hp = Math.min(d.maxHP, s.cur.hp + Math.floor(d.maxHP * 0.2)); return R(KM.apply(s, { money: -Math.min(2, s.money) }).concat(["+" + (s.cur.hp - b) + " HP."])); } },
+        ] },
+        { id: "doi", name: "Đồi Hạnh Hoa", art: "forest", when: "day", desc: "Đồi thấp sau thôn, rừng thưa. Heo rừng, sói và đôi khi sơn tặc.", actions: [
+          { t: "Săn trên đồi", sub: "Rank E", run: (s) => R(["Shen leo lên đồi."], { fight: { foes: hunt1(s), opts: {} } }) },
+        ] },
+        { id: "mieu", name: "Miếu Thổ Địa", art: "temple", desc: "Ngôi miếu nhỏ trên dốc, khói hương quanh năm.", actions: [
+          { t: "Thắp hương cầu may", sub: "5 đồng · d100 ≤ 10 + LUK/5", run: (s) => {
+            if (!once(s, "today_mieu")) return R(["Hương đã thắp hôm nay rồi."], { free: true });
+            const pct = 10 + KM.eff(s).LUK / 5, r = KM.d100(s), m = KM.apply(s, { money: -Math.min(5, s.money) });
+            m.push("Cầu may: d100 = " + r + " / cần ≤ " + KM.fmtPct(pct) + " → " + (r === 1 || r <= pct ? "linh ứng" : "không có gì"));
+            if (r === 1 || r <= pct) m.push(...KM.apply(s, pick(s, [{ money: 500 }, { item: ["hoi_khi", 2] }, { item: ["kim_sang", 3] }, { exp: 200 + 30 * s.level }])));
+            return R(m);
+          } },
+        ] },
+      ],
+    },
     /* ================= PHONG LÂM ================= */
     phong_lam: {
       name: "Phong Lâm Trấn", place: "town",
       locs: [
-        { id: "tram", name: "Trạm tiêu Phong Lâm", art: "town", desc: "Trạm tiêu nhỏ của Long Môn.", actions: [
-          { t: "Giao hàng", cost: 0, show: (s) => !!s.tieuRun, run: () => R([], { scene: "a2_phong_lam" }) },
+        { id: "tram", name: "Trạm tiêu Phong Lâm", art: "yard2", desc: "Trạm tiêu nhỏ của Long Môn, có phòng trọ cho tiêu sư.", actions: [
+          { t: "Giao hàng chuyến tiêu", cost: 0, show: (s) => !!s.tieuRun, run: () => R([], { scene: "a2_phong_lam" }) },
           { t: "Nghỉ đêm ở trạm", cost: 0, run: (s) => R(KM.sleep(s)) },
+        ] },
+        { id: "cho_phien", name: "Chợ phiên Phong Lâm", art: "market", when: "day", desc: "Chợ họp mỗi ngày, hàng hóa từ phương nam đổ về.", actions: [
+          { t: "Hiệu thuốc", cost: 0, run: () => R([], { shop: "hieu_thuoc" }) },
+          { t: "Tiệm binh khí", cost: 0, run: () => R([], { shop: "binh_khi" }) },
+          { t: "Chợ ngựa", cost: 0, run: () => R([], { horses: true }) },
+        ] },
+        { id: "y_quan", name: "Y quán họ Mạc", art: "medic", desc: "Lang trung Mạc chữa bệnh cho cả trấn.", actions: [
+          { t: "Chữa thương", sub: "30 đồng · hồi đầy HP", run: (s) => { if (s.money < 30) return R(["Không đủ 30 đồng."], { free: true }); const d = KM.derived(s); s.cur.hp = d.maxHP; return R(KM.apply(s, { money: -30 }).concat(["HP hồi đầy."])); } },
+        ] },
+        { id: "rung_phong", name: "Rừng phong", art: "forest", when: "day", desc: "Rừng lá đỏ phía nam trấn. Sói đầu đàn và cướp đường.", actions: [
+          { t: "Đi vào rừng phong", sub: "Rank D", run: (s) => { const r = KM.d100(s); const f = r <= 50 ? ["soi_dau_dan"] : r <= 85 ? ["cuop_duong"] : ["cuop_duong", "cuop_duong"]; return R(["Lá phong rụng đỏ dưới chân."], { fight: { foes: f, opts: {} } }); } },
         ] },
       ],
     },
     /* ================= HẮC PHONG SƠN ================= */
     hac_phong: {
-      name: "Chân núi Hắc Phong", place: "road",
+      name: "Hắc Phong Sơn", place: "road", note: (s) => KM.has(s, "rescued_phuong") ? "Trại đã tan, nhưng tàn dư sơn tặc vẫn lẩn khuất trong núi." : "Trại sơn tặc trên mỏm đá phía trên. Đi một mình rất nguy hiểm.",
       locs: [
-        { id: "chan_nui", name: "Chân núi", art: "camp", desc: "Trại sơn tặc trên mỏm đá phía trên.", actions: [
+        { id: "chan_nui", name: "Chân núi", art: "camp", desc: "Lều tạm của thợ săn bỏ lại.", actions: [
           { t: "Tấn công Hắc Phong Trại", show: (s) => s.quests.q_cuu_phuong && s.quests.q_cuu_phuong.st === "active", run: () => R([], { scene: "a2_hac_phong" }) },
           { t: "Nghỉ ở lều tạm", cost: 0, run: (s) => R(KM.sleep(s)) },
+        ] },
+        { id: "son_dao", name: "Sơn đạo", art: "camp", when: "day", desc: "Con đường mòn quanh núi, nơi sơn tặc hay phục kích.", actions: [
+          { t: "Lùng sục sơn đạo", sub: "Rank D", run: (s) => R(["Shen men theo sơn đạo."], { fight: { foes: KM.die(s, 4) === 4 ? ["cuop_duong", "cuop_duong"] : ["cuop_duong"], opts: {} } }) },
         ] },
       ],
     },
@@ -260,14 +307,19 @@
     return R(m, { fight: { foes: [id], opts: { solo: true, noLoot: false }, after: (s2, won) => won ? (KM.flag(s2, id === "vo_si_1" ? "ld1_won" : id === "vo_si_2" ? "ld2_won" : "ld3_won"), KM.apply(s2, { money: prize, rep: { lac_ha: 15 } })) : ["Thua. Mất phí vào cửa."] } });
   }
 
-  KM.hubOf = (s) => (s.place === "thanh_van" && KM.has(s, "a1_done") ? null : KM.HUBS[s.place]);
+  KM.hubOf = (s) => KM.HUBS[s.place];
+  KM.hubLocs = (s, H) => H.locs.filter((l) => !l.show || l.show(s));
+  KM.locActions = function (s, loc) {
+    return loc.actions.filter((a) => !a.show || a.show(s)).concat(KM.questActions ? KM.questActions(s, s.place, loc.id) : []);
+  };
   KM.locOpen = (s, loc) => !loc.when || (loc.when === "day" ? s.slot <= 1 : loc.when === "night" ? s.slot === 2 : true);
   KM.hubAct = function (s, locId, idx) {
-    const H = KM.hubOf(s), loc = H.locs.find((l) => l.id === locId); if (!loc) return R(["?"]);
-    const acts = loc.actions.filter((a) => !a.show || a.show(s));
+    const H = KM.hubOf(s), loc = KM.hubLocs(s, H).find((l) => l.id === locId); if (!loc) return R(["?"]);
+    const acts = KM.locActions(s, loc);
     const a = acts[idx]; if (!a) return R(["?"]);
     if (s.slot === 3 && (a.cost == null || a.cost > 0)) return R(["Đã khuya. Chỉ có thể nghỉ ngơi."]);
-    if (!KM.locOpen(s, loc) && !(a.cost === 0 && /Nghỉ|Thuê/.test(a.t))) return R(["Nơi này không mở vào giờ này."]);
+    if (a.disabled) return R(["Chưa xong: " + (a.sub || "") + "."]);
+    if (!KM.locOpen(s, loc) && !(a.cost === 0 && /Nghỉ|Thuê|Trọ|Ngủ/.test(a.t)) && !a.quest) return R(["Nơi này không mở vào giờ này."]);
     if (a.req && !KM.reqOk(s, a.req)) return R(["Chưa đủ điều kiện: " + KM.reqLabel(a.req) + "."]);
     const res = a.run(s);
     const cost = res.free ? 0 : a.cost == null ? 1 : a.cost;
@@ -275,14 +327,13 @@
     return res;
   };
   KM.mapDests = function (s) {
-    return Object.keys(KM.PLACES).filter((p) => p !== s.place && KM.routeDays(s.place, p) != null).map((p) => {
+    return Object.keys(KM.PLACES).filter((p) => p !== s.place).map((p) => {
       let lock = "";
-      if (p === "thanh_van" && (KM.has(s, "expelled") || KM.has(s, "fugitive_tv") || KM.has(s, "killed_tieu_hao"))) lock = "Không thể quay lại Thanh Vân";
-      if (p === "thanh_van" && !lock) lock = "Thanh Vân không còn việc gì cho Shen lúc này";
+      if (!KM.has(s, "a1_done") && p !== "hanh_hoa" && p !== "thanh_van") lock = "Đang trong hạn xét xử của Thanh Vân, không đi xa được";
       if (p === "kim_lang") lock = "Arc 3 · sắp ra mắt";
-      if (p === "hac_phong" && !(s.quests.q_cuu_phuong && s.quests.q_cuu_phuong.st === "active")) lock = "Chưa có lý do tới đây";
-      if (p === "phong_lam" && !s.tieuRun) lock = "Chỉ đi khi nhận chuyến tiêu";
-      return { p, days: KM.travelDays(s, s.place, p), base: KM.routeDays(s.place, p), lock };
+      const path = KM.path(s.place, p);
+      if (!path) lock = lock || "Không có đường";
+      return { p, days: path ? KM.travelDays(s, s.place, p) : null, base: path ? path.days : null, via: path ? path.nodes : [], lock, known: s.known.includes(p) };
     });
   };
 })(typeof window !== "undefined" ? window : globalThis);

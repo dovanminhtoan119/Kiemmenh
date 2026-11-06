@@ -83,6 +83,13 @@
         body += roof(60, 96, 240, ink, lamp) + '<rect x="0" y="166" width="660" height="54" fill="' + mid + '"/>';
         if (place === "yard2") body += '<line x1="470" y1="40" x2="470" y2="170" stroke="' + ink + '" stroke-width="4"/><path d="M472 44 l70 10 l-70 22 z" fill="#1c1c1c"/><text x="500" y="64" font-family="Times New Roman" font-size="16" fill="#c9a24a">龍</text>';
         else body += '<rect x="380" y="140" width="240" height="30" fill="' + ink + '"/><line x1="380" y1="80" x2="380" y2="140" stroke="#b8332c" stroke-width="4"/><line x1="620" y1="80" x2="620" y2="140" stroke="#b8332c" stroke-width="4"/><line x1="380" y1="84" x2="620" y2="84" stroke="#b8332c" stroke-width="3"/>';
+      } else if (place === "village") {
+        body += mountains(t, 71, 160, 30, mid, 5) + roof(60, 128, 110, ink, lamp) + roof(250, 120, 130, mid, lamp) + roof(470, 130, 110, ink, lamp) + '<rect x="0" y="174" width="660" height="46" fill="' + ink + '"/>';
+        const r = rng(13); for (let i = 0; i < 5; i++) { const x = 190 + i * 70 + r() * 20; body += '<rect x="' + (x - 2) + '" y="140" width="4" height="36" fill="' + ink + '"/><circle cx="' + x + '" cy="134" r="16" fill="#e8a7b4" opacity="' + (t === "night" ? 0.35 : 0.8) + '"/>'; }
+        body += '<rect x="400" y="160" width="26" height="16" fill="' + mid + '"/><rect x="396" y="156" width="34" height="5" fill="' + ink + '"/>';
+      } else if (place === "temple") {
+        body += mountains(t, 81, 160, 40, mid, 5) + '<path d="M240 220 L250 150 L410 150 L420 220 Z" fill="' + ink + '"/>' + roof(260, 108, 140, mid, lamp) + '<rect x="316" y="130" width="28" height="24" fill="' + lamp + '" opacity=".6"/><path d="M340 100 q6 -16 0 -30 q-6 -14 4 -28" stroke="#ccc" stroke-width="3" fill="none" opacity=".35"/>';
+        body += pine(170, 200, 1.2, ink) + pine(500, 205, 1.3, ink);
       } else body += mountains(t, 61, 170, 40, mid, 5);
     }
     if (t === "rain") body += rain();
@@ -114,6 +121,13 @@
     vo_si: { skin: "#c8946a", hair: "band", hc: "#1a1a1a", robe: "#7a3a1a", trim: "#f0c060", label: "Hồ Báo" },
     vo_si2: { skin: "#a87a52", hair: "bald", hc: "#1a1a1a", robe: "#4a3a2a", trim: "#8a6a3a", big: true, label: "Thiết Ngưu" },
     vo_si3: { skin: "#f0d8c0", hair: "long", hc: "#101010", robe: "#d8dce6", trim: "#5a6a8a", label: "Lãnh Nguyệt" },
+    quan_su_bep: { skin: "#d6a882", hair: "short", hc: "#3a3a3a", robe: "#8a7a5a", trim: "#f0ead8", beard: "#3a3a3a", big: true, label: "Quản sự Vương" },
+    truong_thon: { skin: "#c99a70", hair: "topknot", hc: "#bdbdbd", robe: "#6a5a3a", trim: "#3a301e", beard: "#cfcfcf", label: "Trưởng thôn Lưu" },
+    ba_tra: { skin: "#d8b08c", hair: "bun", hc: "#9a9a9a", robe: "#5a4a6a", trim: "#d8d0e0", female: true, label: "Bà Tư" },
+    tho_san: { skin: "#b8845a", hair: "band", hc: "#1a1a1a", robe: "#5a4a2a", trim: "#8a6a3a", label: "Hạ Tứ" },
+    dan_chai: { skin: "#a87a52", hair: "straw", hc: "#5a5a5a", robe: "#3a4a52", trim: "#1a2a30", beard: "#5a5a5a", label: "Lão Ngư" },
+    chuong_quy: { skin: "#e0bc96", hair: "topknot", hc: "#2a2a2a", robe: "#7a3a2a", trim: "#d8b060", label: "Chưởng quỹ Tiền" },
+    lang_trung: { skin: "#e4c4a0", hair: "long", hc: "#5a5a5a", robe: "#4a6a5a", trim: "#d8e8e0", beard: "#6a6a6a", label: "Lang trung Mạc" },
   };
   function beast(kind, label) {
     let body = "";

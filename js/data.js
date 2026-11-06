@@ -41,7 +41,7 @@
   ];
   KM.FACTIONS = {
     thanh_van: "Thanh Vân Phái", long_mon: "Long Môn Tiêu Cục", lac_ha: "Dân trấn Lạc Hà",
-    cai_bang: "Cái Bang", duong_mon: "Đường Môn", huyet_anh: "Huyết Ảnh Lâu",
+    cai_bang: "Cái Bang", duong_mon: "Đường Môn", huyet_anh: "Huyết Ảnh Lâu", hanh_hoa: "Dân thôn Hạnh Hoa", phong_lam: "Trấn Phong Lâm",
   };
 
   /* ---------------- 20 đặc tính ---------------- */
@@ -153,6 +153,9 @@
     manh_chan_giai: { name: "Mảnh Thiên Mạch Chân Giải", type: "key", price: 0, desc: "Mảnh lụa cũ chép phép thông kinh mạch. Mỗi mảnh tăng uy lực nhánh nội công của Shen." },
     thu_mat: { name: "Thư mật Huyết Ảnh", type: "key", price: 0, desc: "Thư hẹn giao bí kíp, đóng ấn giọt máu." },
     so_sach_giao: { name: "Sổ sách thủy trại", type: "key", price: 0, desc: "Sổ ghi các chuyến hàng độc dược Hắc Giao buôn cho Đường Môn." },
+    thu_nha: { name: "Thư nhà của bà Tư", type: "key", price: 0, desc: "Gửi con trai bà, Tư Bình, làm tiểu nhị ở khách điếm Duyệt Lai, Lạc Hà." },
+    hop_doc: { name: "Hộp gỗ niêm phong", type: "key", price: 0, desc: "Hộp của Đường Môn, nặng mùi thuốc. Giao cho trạm tiêu Phong Lâm." },
+    duoc_thao: { name: "Dạ Quang Thảo", type: "mat", price: 120, desc: "Cỏ phát sáng ban đêm, mọc trong rừng ẩm." },
   };
   KM.SLOTS = { weapon: "Vũ khí", head: "Khăn đầu", body: "Áo giáp", wrist: "Hộ uyển", boots: "Giày", belt: "Đai lưng", jade: "Ngọc bội" };
 
@@ -169,11 +172,14 @@
 
   /* Tuyến đường (ngày đi bộ) */
   KM.ROUTES = {
-    "thanh_van>lac_ha": 2, "lac_ha>phong_lam": 3, "lac_ha>hac_phong": 1, "lac_ha>kim_lang": 6,
+    "thanh_van>hanh_hoa": 1, "hanh_hoa>lac_ha": 1, "lac_ha>hac_phong": 1, "hac_phong>phong_lam": 2, "lac_ha>phong_lam": 3, "lac_ha>kim_lang": 6,
   };
   KM.PLACES = {
-    thanh_van: "Thanh Vân Sơn", lac_ha: "Trấn Lạc Hà", phong_lam: "Phong Lâm Trấn", hac_phong: "Hắc Phong Sơn", kim_lang: "Kim Lăng",
+    thanh_van: "Thanh Vân Sơn", hanh_hoa: "Thôn Hạnh Hoa", lac_ha: "Trấn Lạc Hà", hac_phong: "Hắc Phong Sơn", phong_lam: "Phong Lâm Trấn", kim_lang: "Kim Lăng",
   };
+  KM.PLACE_KIND = { thanh_van: "Môn phái", hanh_hoa: "Thôn làng", lac_ha: "Thị trấn", hac_phong: "Núi hoang", phong_lam: "Thị trấn", kim_lang: "Kinh thành" };
+  // Tọa độ trên bản đồ thế giới (0–100)
+  KM.MAP_XY = { thanh_van: [14, 22], hanh_hoa: [30, 42], lac_ha: [50, 55], hac_phong: [44, 82], phong_lam: [76, 80], kim_lang: [88, 30] };
 
   /* ---------------- NPC ---------------- */
   KM.NPCS = {
@@ -188,6 +194,13 @@
     duong_nhat_anh: { name: "Đường Nhất Ảnh", role: "Thiếu gia Đường Môn" },
     au_tri: { name: "Âu Trì", role: "Thợ rèn ở chợ Lạc Hà" },
     ong_lao_ca: { name: "Ông lão đánh cá", role: "Ông lão chèo đò trên sông Lạc Hà" },
+    quan_su_bep: { name: "Quản sự Vương", role: "Quản sự hậu trù Thanh Vân" },
+    truong_thon: { name: "Trưởng thôn Lưu", role: "Trưởng thôn Hạnh Hoa" },
+    ba_tra: { name: "Bà Tư bán trà", role: "Chủ quán trà đầu thôn Hạnh Hoa" },
+    tho_san: { name: "Thợ săn Hạ Tứ", role: "Thợ săn trên đồi Hạnh Hoa" },
+    dan_chai: { name: "Lão Ngư", role: "Trưởng dân chài bến Lạc Hà" },
+    chuong_quy: { name: "Chưởng quỹ Tiền", role: "Chưởng quỹ trạm tiêu Phong Lâm" },
+    lang_trung: { name: "Lang trung Mạc", role: "Thầy thuốc ở Phong Lâm" },
   };
 
   /* ---------------- Kẻ địch ----------------
@@ -198,7 +211,7 @@
     ly_tam: N("Lý Tam", "E", 2, { STR: 8, AGI: 7, VIT: 7, INT: 4, WIS: 4, LUK: 5 }, { hpMul: 0.3, portrait: "ly_tam",
       skills: [S("Thanh Vân Quyền", 1.3, { cd: 2 })], loot: [["banh_bao", 50]], coin: [1, 3, 10] }),
     soi_xam: N("Sói xám", "E", 3, { STR: 9, AGI: 10, VIT: 7, INT: 2, WIS: 6, LUK: 6 }, { hpMul: 0.3, beast: true, portrait: "soi",
-      skills: [S("Cắn xé", 1.25, { cd: 1 })], loot: [["da_soi", 60], ["rang_soi", 30]], coin: [0, 0, 0] }),
+      skills: [S("Cắn xé", 1.25, { cd: 1 })], loot: [["da_soi", 60], ["rang_soi", 30], ["duoc_thao", 15]], coin: [0, 0, 0] }),
     heo_rung: N("Heo rừng", "E", 4, { STR: 12, AGI: 6, VIT: 12, INT: 2, WIS: 5, LUK: 8 }, { hpMul: 0.35, beast: true, portrait: "heo",
       skills: [S("Húc", 1.5, { cd: 2 })], loot: [["da_heo", 55], ["nanh_heo", 35]] }),
     de_tu_noi: N("Đệ tử nội môn", "E", 6, { STR: 11, AGI: 12, VIT: 10, INT: 8, WIS: 7, LUK: 7 }, { wtype: "kiem", watk: 5, hpMul: 0.45, portrait: "de_tu",
@@ -220,11 +233,11 @@
     tieu_dau: N("Tiêu đầu Mã Đại", "D", 11, { STR: 17, AGI: 13, VIT: 16, INT: 9, WIS: 9, LUK: 16 }, { wtype: "dao", watk: 10, hpMul: 0.7, portrait: "tieu_dau",
       skills: [S("Khai Sơn Đao", 1.5, { cd: 1 })], loot: [], coin: [0, 0, 0], expMul: 0.5 }),
     cuop_duong: N("Cướp đường", "D", 11, { STR: 16, AGI: 15, VIT: 15, INT: 7, WIS: 9, LUK: 18 }, { wtype: "dao", watk: 10, hpMul: 0.55, portrait: "son_tac",
-      skills: [S("Chém bổ", 1.4, { cd: 1 })], loot: [["kim_sang", 40], ["q:Lương", 25], ["q:Tinh", 4]], coin: [2, 6, 100] }),
+      skills: [S("Chém bổ", 1.4, { cd: 1 })], loot: [["kim_sang", 40], ["sat_tinh", 25], ["q:Lương", 25], ["q:Tinh", 4]], coin: [2, 6, 100] }),
     soi_dau_dan: N("Sói đầu đàn", "D", 13, { STR: 18, AGI: 21, VIT: 15, INT: 4, WIS: 14, LUK: 18 }, { hpMul: 0.5, beast: true, portrait: "soi",
       skills: [S("Cắn xé", 1.35, { cd: 1 }), S("Tru gọi bầy", 0.8, { hits: 2, cd: 3 })], loot: [["da_soi", 80], ["rang_soi", 60], ["q:Lương", 15]] }),
     thuy_phi: N("Thủy phỉ", "D", 12, { STR: 17, AGI: 15, VIT: 16, INT: 7, WIS: 10, LUK: 20 }, { wtype: "thuong", watk: 9, hpMul: 0.55, portrait: "thuy_phi",
-      skills: [S("Đâm xiên", 1.4, { cd: 1 })], loot: [["kim_sang", 35], ["hoi_khi", 20], ["q:Lương", 25], ["q:Tinh", 5]], coin: [2, 6, 100] }),
+      skills: [S("Đâm xiên", 1.4, { cd: 1 })], loot: [["kim_sang", 35], ["hoi_khi", 20], ["sat_tinh", 20], ["q:Lương", 25], ["q:Tinh", 5]], coin: [2, 6, 100] }),
     son_tac_dau: N("Đầu mục Hắc Phong Trại", "D", 14, { STR: 21, AGI: 16, VIT: 20, INT: 10, WIS: 11, LUK: 17 }, { wtype: "dao", watk: 22, boss: true, portrait: "dau_muc",
       skills: [S("Hắc Phong Đao", 1.5, { cd: 1 }), S("Liên Hoàn Trảm", 0.8, { hits: 2, cd: 3 })], loot: [["q:Tinh", 100], ["dai_hoan", 50]], coin: [3, 6, 100], expMul: 0.9 }),
     sat_thu: N("Sát thủ Huyết Ảnh", "D", 15, { STR: 16, AGI: 26, VIT: 15, INT: 14, WIS: 13, LUK: 16 }, { wtype: "kiem", watk: 12, hpMul: 0.75, portrait: "hac_y",

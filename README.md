@@ -19,6 +19,9 @@ Chơi tại: https://dovanminhtoan119.github.io/Kiemmenh/
 - Xúc xắc: né / chí mạng / trạng thái / rơi đồ gieo d100, biến thiên sát thương d20, kiểm tra ngoài trận d20 + chỉ số/5. Bộ sinh số có hạt giống lưu trong save.
 - Rơi đồ theo phẩm (Phàm → Thần), ngựa rút ngắn đường đi theo phẩm, kỳ ngộ mỗi arc + tiểu kỳ ngộ hằng ngày.
 - Thời gian 4 buổi/ngày, khu tự do, cửa hàng, lò rèn cường hóa, đạo đức 7 bậc, danh vọng theo phe, hảo cảm NPC, Sổ Ân Oán.
+- **Bản đồ thế giới**: 6 địa điểm (Thanh Vân Sơn, Thôn Hạnh Hoa, Trấn Lạc Hà, Hắc Phong Sơn, Phong Lâm Trấn, Kim Lăng), đi tới bất kỳ đâu theo đường ngắn nhất, quay lại khám phá nơi cũ.
+- **Nhiệm vụ nhánh**: 17 việc nhận từ NPC ở môn phái, thôn làng, thị trấn (giết / thu thập / giao hàng có hạn).
+- Hạn chính tuyến: Arc 1 xét xử sáng ngày 10; Arc 2 cứu Phượng Nhi trong 6 ngày, Hắc Giao rời Lạc Hà sau 24 ngày, chuyến tiêu Phong Lâm hạn 5 ngày.
 - Tự lưu, 3 ô lưu, xuất/nhập file có mã kiểm tra.
 
 ## Cấu trúc
@@ -26,7 +29,7 @@ Chơi tại: https://dovanminhtoan119.github.io/Kiemmenh/
 - `js/skills.js` — kỹ năng, 10 nhánh Võ Đạo, Class ẩn, võ công Mạch Ẩn, câu hỏi phỏng vấn.
 - `js/engine.js` — xúc xắc, chỉ số, EXP/cảnh giới, trang bị, cửa hàng, rơi đồ, thời gian, đi đường, lưu.
 - `js/combat.js` — chiến đấu theo lượt.
-- `js/story_a1.js`, `js/story_a2.js` — cốt truyện; `js/hub.js` — khu tự do và sự kiện.
+- `js/story_a1.js`, `js/story_a2.js` — cốt truyện; `js/hub.js` — khu tự do, sự kiện, bản đồ; `js/quests.js` — nhiệm vụ nhánh.
 - `js/art.js` — phông cảnh và chân dung SVG; `js/ui.js`, `css/style.css` — giao diện (Times New Roman).
 - `tests/engine.test.js` — unit test công thức + bot chơi thử tự động qua 2 arc: `node tests/engine.test.js 60`.
 

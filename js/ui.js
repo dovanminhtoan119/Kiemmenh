@@ -91,8 +91,9 @@
       if (r.shop) UI.view = { kind: "shop", id: r.shop }; else if (r.horses) UI.view = { kind: "horses" }; else if (r.forge) UI.view = { kind: "forge" };
       checkHub();
     },
-    map() { UI.view = { kind: "map" }; },
-    travel(p) { const s = UI.s; UI.msgs = KM.startTravel(s, p); s.travelGo = null; s.hub = null; UI.view = null; },
+    map() { UI.view = { kind: "map" }; UI.mapSel = null; },
+    mapSel(p) { UI.mapSel = p; },
+    travel(p) { const s = UI.s; UI.msgs = KM.startTravel(s, p); s.travelGo = null; s.hub = null; UI.view = null; UI.mapSel = null; },
     step() {
       const s = UI.s; UI.msgs = [];
       const r = KM.travelStep(s); push(r.msgs);
@@ -236,19 +237,23 @@
     if (v && v.kind === "horses") return h + horseView();
     if (v && v.kind === "forge") return h + forgeView();
     if (v && v.kind === "map") return h + mapView();
-    if (s.slot === 3) h += '<p class="sys" style="margin-top:10px">Đã khuya. Hãy nghỉ ngơi (Phòng / Khách điếm / Trạm).</p>';
-    h += '<div class="locs">' + H.locs.map((l) => {
-      const open = KM.locOpen(s, l);
-      return '<button class="loc' + (v && v.id === l.id ? " on" : "") + (open ? "" : " closed") + '" data-a="loc" data-x="' + l.id + '"><b>' + esc(l.name) + "</b><small>" + (l.when === "day" ? "Sáng · chiều" : l.when === "night" ? "Chỉ buổi tối" : "Cả ngày") + "</small></button>";
+    const note = H.note && H.note(s);
+    if (note) h += '<p class="sys" style="margin-top:10px">' + esc(note) + "</p>";
+    if (s.slot === 3) h += '<p class="sys" style="margin-top:10px">Đã khuya. Hãy tìm chỗ nghỉ (phòng trọ, trạm, lều…).</p>';
+    const locs = KM.hubLocs(s, H);
+    h += '<div class="locs">' + locs.map((l) => {
+      const open = KM.locOpen(s, l), qa = KM.questActions(s, s.place, l.id), nNew = qa.filter((a) => /^Nhận/.test(a.t)).length, nDone = qa.filter((a) => /^(Trả|Giao)/.test(a.t) && !a.disabled).length;
+      return '<button class="loc' + (v && v.id === l.id ? " on" : "") + (open ? "" : " closed") + '" data-a="loc" data-x="' + l.id + '"><b>' + esc(l.name) + (nDone ? ' <i class="qb done">✓</i>' : nNew ? ' <i class="qb">!</i>' : "") + "</b><small>" + (l.when === "day" ? "Sáng · chiều" : l.when === "night" ? "Chỉ buổi tối" : "Cả ngày") + "</small></button>";
     }).join("") + "</div>";
-    if (v && v.kind === "loc") {
-      const l = H.locs.find((x) => x.id === v.id), open = KM.locOpen(s, l);
-      const acts = l.actions.filter((a) => !a.show || a.show(s));
+    if (v && v.kind === "loc" && !locs.find((x) => x.id === v.id)) UI.view = null;
+    if (v && v.kind === "loc" && locs.find((x) => x.id === v.id)) {
+      const l = locs.find((x) => x.id === v.id), open = KM.locOpen(s, l);
+      const acts = KM.locActions(s, l);
       h += '<div class="panel"><h3>' + esc(l.name) + '</h3><p class="muted">' + esc(l.desc) + "</p>" + (open ? "" : '<p class="sys">Nơi này không mở vào giờ này.</p>') +
         '<div class="acts">' + acts.map((a, i) => {
-          const sleepy = a.cost === 0 && /Nghỉ|Thuê/.test(a.t);
-          const dis = (!open && !sleepy) || (s.slot === 3 && !(a.cost === 0)) || (a.req && !KM.reqOk(s, a.req));
-          return '<button class="act" data-a="hubAct" data-x="' + l.id + '" data-y="' + i + '"' + (dis ? " disabled" : "") + "><span>" + esc(a.t) + "</span>" + (a.sub ? "<small>" + esc(a.sub) + "</small>" : "") + '<span class="fx">' + (a.cost === 0 ? "không tốn thời gian" : a.cost === 2 ? "tốn 2 buổi" : "tốn 1 buổi") + (a.req ? " · cần " + esc(KM.reqLabel(a.req)) : "") + "</span></button>";
+          const sleepy = a.cost === 0 && /Nghỉ|Thuê|Trọ|Ngủ/.test(a.t);
+          const dis = a.disabled || (!open && !sleepy && !a.quest) || (s.slot === 3 && !(a.cost === 0)) || (a.req && !KM.reqOk(s, a.req));
+          return '<button class="act' + (a.quest ? " quest" : "") + '" data-a="hubAct" data-x="' + l.id + '" data-y="' + i + '"' + (dis ? " disabled" : "") + "><span>" + esc(a.t) + "</span>" + (a.sub ? "<small>" + esc(a.sub) + "</small>" : "") + '<span class="fx">' + (a.quest ? "nhiệm vụ nhánh · không tốn thời gian" : a.cost === 0 ? "không tốn thời gian" : a.cost === 2 ? "tốn 2 buổi" : "tốn 1 buổi") + (a.req ? " · cần " + esc(KM.reqLabel(a.req)) : "") + "</span></button>";
         }).join("") + (acts.length ? "" : '<p class="muted">Không có việc gì lúc này.</p>') + "</div></div>";
     }
     return h;
@@ -288,10 +293,24 @@
     return h + "</div>";
   }
   function mapView() {
-    const s = UI.s;
-    let h = '<div class="panel"><div class="row" style="justify-content:space-between"><h3>Bản đồ</h3><button class="ghost sm" data-a="back">Đóng</button></div><p class="muted">Ngựa: ' + (s.horse ? esc(KM.HORSES[s.horse].name) + " ×" + KM.HORSES[s.horse].mult : "đi bộ ×1") + ". Thời gian = ngày đi bộ × hệ số ngựa, làm tròn lên theo buổi (0.25 ngày).</p>";
-    KM.mapDests(s).forEach((d) => {
-      h += '<div class="slot"><div><b>' + esc(KM.PLACES[d.p]) + '</b><br><small class="muted">Đi bộ ' + d.base + " ngày → " + d.days + " ngày" + (d.lock ? " · " + esc(d.lock) : "") + '</small></div><button class="ghost sm" data-a="travel" data-x="' + d.p + '"' + (d.lock ? " disabled" : "") + ">Lên đường</button></div>";
+    const s = UI.s, dests = KM.mapDests(s), sel = UI.mapSel;
+    let svg = '<svg viewBox="0 0 100 100" class="wmap" role="img" aria-label="Bản đồ thế giới"><rect width="100" height="100" fill="#e9dfc4"/>' +
+      '<path d="M0 62 Q30 50 50 58 T100 52" stroke="#7fa6b8" stroke-width="2.2" fill="none" opacity=".7"/><path d="M8 14 l6 -8 l6 8 M18 18 l5 -7 l5 7 M60 86 l5 -7 l5 7" stroke="#8a7a5a" stroke-width=".8" fill="none"/>';
+    for (const k in KM.ROUTES) { const [a, b] = k.split(">"), A = KM.MAP_XY[a], B = KM.MAP_XY[b]; svg += '<line x1="' + A[0] + '" y1="' + A[1] + '" x2="' + B[0] + '" y2="' + B[1] + '" stroke="#6a5a3a" stroke-width=".7" stroke-dasharray="1.6 1.2"/><text x="' + ((A[0] + B[0]) / 2 + 1) + '" y="' + ((A[1] + B[1]) / 2 - 1) + '" font-size="2.6" fill="#6a5a3a">' + KM.ROUTES[k] + "n</text>"; }
+    if (sel) { const p = KM.path(s.place, sel); if (p) for (let i = 1; i < p.nodes.length; i++) { const A = KM.MAP_XY[p.nodes[i - 1]], B = KM.MAP_XY[p.nodes[i]]; svg += '<line x1="' + A[0] + '" y1="' + A[1] + '" x2="' + B[0] + '" y2="' + B[1] + '" stroke="#b8332c" stroke-width="1.2"/>'; } }
+    Object.keys(KM.PLACES).forEach((p) => {
+      const [x, y] = KM.MAP_XY[p], here = p === s.place, known = s.known.includes(p), d = dests.find((z) => z.p === p), locked = d && d.lock;
+      svg += '<g class="wnode" data-a="mapSel" data-x="' + p + '" style="cursor:pointer"><circle cx="' + x + '" cy="' + y + '" r="' + (here ? 3.4 : 2.6) + '" fill="' + (here ? "#b8332c" : locked ? "#9a917c" : known ? "#22201b" : "#efe6cf") + '" stroke="#22201b" stroke-width=".6"/>' +
+        '<text x="' + x + '" y="' + (y + 6.4) + '" font-size="3.4" text-anchor="middle" fill="#22201b" font-weight="' + (p === sel ? 700 : 400) + '">' + esc(known || here ? KM.PLACES[p] : "???  " + KM.PLACES[p]) + "</text>" +
+        '<text x="' + x + '" y="' + (y + 9.6) + '" font-size="2.4" text-anchor="middle" fill="#6a5a3a">' + esc(KM.PLACE_KIND[p] + (KM.questCountAt(s, p) && known ? " · " + KM.questCountAt(s, p) + " việc" : "")) + "</text></g>";
+    });
+    svg += "</svg>";
+    let h = '<div class="panel"><div class="row" style="justify-content:space-between"><h3>Bản đồ thế giới</h3><button class="ghost sm" data-a="back">Đóng</button></div>' + svg +
+      '<p class="muted">Đang ở <b>' + esc(KM.PLACES[s.place]) + "</b>. Ngựa: " + (s.horse ? esc(KM.HORSES[s.horse].name) + " ×" + KM.HORSES[s.horse].mult : "đi bộ ×1") + ". Đi tới bất kỳ đâu theo đường ngắn nhất; thời gian = tổng ngày đi bộ × hệ số ngựa, làm tròn lên theo buổi.</p>";
+    const main = Object.keys(UI.s.quests).map((k) => UI.s.quests[k]).filter((q) => q.st === "active" && q.deadline);
+    if (main.length) h += '<p class="sys">Chính tuyến: ' + main.map((q) => esc(q.name) + " — hạn hết ngày " + q.deadline + " (còn " + Math.max(0, q.deadline - s.day) + " ngày)").join("; ") + "</p>";
+    dests.forEach((d) => {
+      h += '<div class="slot' + (d.p === sel ? " sel" : "") + '"><div><b>' + esc(KM.PLACES[d.p]) + "</b> <small class=\"muted\">" + esc(KM.PLACE_KIND[d.p]) + (d.known ? "" : " · chưa khám phá") + '</small><br><small class="muted">' + (d.base != null ? esc(d.via.map((n) => KM.PLACES[n]).join(" → ")) + " · đi bộ " + d.base + " ngày → " + d.days + " ngày" : "") + (d.lock ? " · " + esc(d.lock) : "") + '</small></div><button class="ghost sm" data-a="travel" data-x="' + d.p + '"' + (d.lock ? " disabled" : "") + ">Lên đường</button></div>";
     });
     return h + "</div>";
   }
@@ -405,7 +424,12 @@
   }
   function questView() {
     const s = UI.s, qs = Object.keys(s.quests);
-    let h = '<div class="panel"><h3>Nhiệm vụ</h3>' + (qs.length ? qs.reverse().map((k) => { const q = s.quests[k]; return '<div class="quest ' + q.st + '"><b>' + esc(q.name) + "</b> <em>" + (q.st === "done" ? "Hoàn thành" : q.st === "fail" ? "Thất bại" : "Đang làm") + '</em><br><small class="muted">' + esc(q.desc) + "</small></div>"; }).join("") : '<p class="muted">Chưa có.</p>') + "</div>";
+    let h = '<div class="panel"><h3>Chính tuyến</h3>' + (qs.length ? qs.reverse().map((k) => { const q = s.quests[k]; return '<div class="quest ' + q.st + '"><b>' + esc(q.name) + "</b> <em>" + (q.st === "done" ? "Hoàn thành" : q.st === "fail" ? "Thất bại" : "Đang làm") + (q.st === "active" && q.deadline ? " · hạn hết ngày " + q.deadline + " (còn " + Math.max(0, q.deadline - s.day) + " ngày)" : "") + '</em><br><small class="muted">' + esc(q.desc) + "</small></div>"; }).join("") : '<p class="muted">Chưa có.</p>') + "</div>";
+    const sq = Object.keys(s.side), order = { active: 0, fail: 2, done: 1 };
+    h += '<div class="panel"><h3>Nhiệm vụ nhánh</h3>' + (sq.length ? sq.sort((a, b) => order[s.side[a].st] - order[s.side[b].st]).map((id) => {
+      const q = KM.SIDEQUESTS[id], st = s.side[id], ready = KM.sideReady(s, id);
+      return '<div class="quest ' + st.st + '"><b>' + esc(q.name) + "</b> <em>" + (st.st === "done" ? "Hoàn thành" : st.st === "fail" ? "Thất bại" : ready ? "Đã xong — về trả việc" : "Đang làm") + '</em><br><small class="muted">' + esc(KM.GIVER_NAME(q.giver)) + " · " + esc(KM.PLACES[q.place]) + " · " + esc(q.desc) + (st.st === "active" ? "<br>Tiến độ: " + esc(KM.sideDesc(s, id)) : "") + "</small></div>";
+    }).join("") : '<p class="muted">Chưa nhận việc nào. Ghé các thôn trấn, tìm địa điểm có dấu <b class="hot">!</b>.</p>') + "</div>";
     h += '<div class="panel"><h3>Manh mối</h3>' + (s.clues.length ? "<ol>" + s.clues.map((c) => "<li>" + esc({ c_tro: "Tro giấy cháy dở có ấn giọt máu, hẹn giao \"tầng ba\"", c_nhan_chung: "Tiểu Lục thấy Tiêu Hạo rời Tàng Kinh Các đêm mất kiếm phổ", c_thu_mat: "Thư mật Huyết Ảnh Lâu gửi \"Tiêu công tử\"" }[c] || c) + "</li>").join("") + "</ol>" : '<p class="muted">Chưa có.</p>') + "</div>";
     return h;
   }

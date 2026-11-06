@@ -282,6 +282,7 @@
       if (c.over === "win") {
         s.stats.wins++;
         c.foes.forEach((f) => { s.stats.kills++; msgs.push(f.name + " (Lv " + f.lv + "): " + f.exp + " EXP"); });
+        if (KM.sideKill) c.foes.forEach((f) => msgs.push(...KM.sideKill(s, f.id)));
         const total = c.foes.reduce((a, f) => a + f.exp, 0);
         msgs.push(...KM.gainExp(s, total));
         if (!c.opts.noLoot && !(tx && s.claimed.includes("loot_" + tx))) { if (tx) s.claimed.push("loot_" + tx); c.foes.forEach((f) => msgs.push(...KM.rollLoot(s, f))); }

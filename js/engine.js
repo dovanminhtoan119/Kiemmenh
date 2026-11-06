@@ -42,7 +42,7 @@
       quests: {}, ledger: [], flags: [], claimed: [], clues: [], visits: {},
       rng: { s: (seed == null ? Math.floor(Math.random() * 2147483647) : seed) | 0 },
       scene: "p_rain", hub: null, travel: null, weakUntil: 0, pendingRank: null, mini: null,
-      stats: { kills: 0, wins: 0, losses: 0 }, marks: {}, tieuRun: null,
+      stats: { kills: 0, wins: 0, losses: 0 }, marks: {}, tieuRun: null, known: ["thanh_van"], side: {},
     };
     KM.recalc(s, true);
     s.cur.hp = 38; // đêm mưa: bị đánh gần chết
@@ -396,7 +396,11 @@
     if (eff.meet) [].concat(eff.meet).forEach((n) => { if (!s.met.includes(n)) { s.met.push(n); s.aff[n] = s.aff[n] || 0; } });
     if (eff.quest) for (const q in eff.quest) {
       const v = eff.quest[q];
-      if (typeof v === "object") { s.quests[q] = Object.assign({ st: "active" }, v); msgs.push("Nhiệm vụ mới: " + v.name); }
+      if (typeof v === "object") {
+        const o = Object.assign({ st: "active" }, v);
+        if (v.dueDays) o.deadline = (v.dueFrom ? (s.marks[v.dueFrom] || s.day) : s.day) + v.dueDays;
+        s.quests[q] = o; msgs.push("Nhiệm vụ mới: " + v.name + (o.deadline ? " (hạn: hết ngày " + o.deadline + ")" : ""));
+      }
       else if (s.quests[q] && s.quests[q].st !== v) { s.quests[q].st = v; msgs.push((v === "done" ? "Hoàn thành" : v === "fail" ? "Thất bại" : "Cập nhật") + " nhiệm vụ: " + s.quests[q].name); }
     }
     if (eff.ledger) KM.addLedger(s, eff.ledger);
@@ -455,6 +459,7 @@
     s.day++;
     const msgs = ["— Ngày " + s.day + " —"];
     if (s.horse) { const b = s.money; s.money = Math.max(0, s.money - KM.HORSE_FEED); msgs.push("Cỏ và trọ ngựa: " + KM.money(b) + " − " + KM.HORSE_FEED + " đồng = " + KM.money(s.money) + "."); }
+    if (KM.sideDeadlines) msgs.push(...KM.sideDeadlines(s));
     return msgs;
   };
   KM.sleep = function (s) {
@@ -483,17 +488,31 @@
   };
 
   /* ---------------- Đi đường ---------------- */
-  KM.routeDays = function (a, b) { return KM.ROUTES[a + ">" + b] || KM.ROUTES[b + ">" + a] || null; };
+  KM.edges = function (a) { const out = []; for (const k in KM.ROUTES) { const [x, y] = k.split(">"); if (x === a) out.push([y, KM.ROUTES[k]]); else if (y === a) out.push([x, KM.ROUTES[k]]); } return out; };
+  // Đường ngắn nhất (Dijkstra) giữa hai địa điểm bất kỳ
+  KM.path = function (a, b, avoid) {
+    if (a === b) return { days: 0, nodes: [a] };
+    const dist = { [a]: 0 }, prev = {}, todo = new Set(Object.keys(KM.PLACES));
+    while (todo.size) {
+      let u = null; todo.forEach((n) => { if (dist[n] != null && (u == null || dist[n] < dist[u])) u = n; });
+      if (u == null) break; todo.delete(u); if (u === b) break;
+      KM.edges(u).forEach(([v, w]) => { if (avoid && avoid.includes(v) && v !== b) return; const nd = dist[u] + w; if (dist[v] == null || nd < dist[v]) { dist[v] = nd; prev[v] = u; } });
+    }
+    if (dist[b] == null) return null;
+    const nodes = [b]; while (nodes[0] !== a) nodes.unshift(prev[nodes[0]]);
+    return { days: dist[b], nodes };
+  };
+  KM.routeDays = function (a, b) { const p = KM.path(a, b); return p ? p.days : null; };
   KM.travelDays = function (s, a, b) {
     const base = KM.routeDays(a, b); if (base == null) return null;
     const m = s.horse ? KM.HORSES[s.horse].mult : 1;
     return Math.ceil((base * m) / 0.25 - 1e-9) * 0.25;
   };
   KM.startTravel = function (s, dest) {
-    const days = KM.travelDays(s, s.place, dest);
-    const base = KM.routeDays(s.place, dest);
-    s.travel = { from: s.place, dest, left: Math.round(days * 4), total: Math.round(days * 4) };
-    return [KM.PLACES[s.place] + " → " + KM.PLACES[dest] + ": đi bộ " + base + " ngày" + (s.horse ? " × " + KM.HORSES[s.horse].mult + " (" + KM.HORSES[s.horse].name + ") = " + (base * KM.HORSES[s.horse].mult).toFixed(2).replace(/\.?0+$/, "") + " → làm tròn lên " + days + " ngày" : " = " + days + " ngày") + "."];
+    const days = KM.travelDays(s, s.place, dest), p = KM.path(s.place, dest), base = p.days;
+    s.travel = { from: s.place, dest, left: Math.round(days * 4), total: Math.round(days * 4), via: p.nodes.slice(1, -1) };
+    const route = p.nodes.map((n) => KM.PLACES[n]).join(" → ");
+    return [route + ": đi bộ " + base + " ngày" + (s.horse ? " × " + KM.HORSES[s.horse].mult + " (" + KM.HORSES[s.horse].name + ") = " + (base * KM.HORSES[s.horse].mult).toFixed(2).replace(/\.?0+$/, "") + " → làm tròn lên " + days + " ngày" : " = " + days + " ngày") + "."];
   };
   // Đi một chặng (tối đa 4 buổi); trả về sự kiện nếu có
   KM.travelStep = function (s) {
@@ -511,7 +530,7 @@
         else msgs.push(...(KM.rollMiniForce(s)));
       }
     }
-    if (t.left <= 0) { s.place = t.dest; s.travel = null; msgs.push("Đã đến " + KM.PLACES[t.dest] + "."); }
+    if (t.left <= 0) { s.place = t.dest; s.travel = null; if (!s.known.includes(t.dest)) { s.known.push(t.dest); msgs.push("Khám phá địa điểm mới: " + KM.PLACES[t.dest] + "."); } msgs.push("Đã đến " + KM.PLACES[t.dest] + "."); }
     return { msgs, fight };
   };
   KM.rollMiniForce = function (s) { const out = []; const k = KM.die(s, 6) + KM.die(s, 6); out.push("TIỂU KỲ NGỘ dọc đường: nhặt được túi tiền rơi, 2d6 = " + k + " bạc.", ...KM.apply(s, { money: k * 100 })); return out; };
@@ -548,8 +567,14 @@
     let o; try { o = JSON.parse(txt); } catch (e) { return { err: "File không đúng định dạng." }; }
     if (!o || o.game !== "kiem-menh" || typeof o.body !== "string") return { err: "Không phải file lưu của Kiếm Mệnh." };
     if (KM.hash(o.body) !== o.sum) return { err: "Mã kiểm tra không khớp: file đã bị sửa hoặc hỏng." };
-    const s = JSON.parse(o.body); const v = KM.validate(s); if (v) return { err: v };
+    const s = JSON.parse(o.body); KM.migrate(s); const v = KM.validate(s); if (v) return { err: v };
     return { s };
+  };
+  KM.migrate = function (s) {
+    if (!s.known) { s.known = ["thanh_van"]; if (KM.has(s, "arrived_lac_ha")) s.known.push("hanh_hoa", "lac_ha"); if (s.quests.q_cuu_phuong) s.known.push("hac_phong"); if (s.quests.q_phong_lam) s.known.push("phong_lam"); if (!s.known.includes(s.place)) s.known.push(s.place); }
+    if (!s.side) s.side = {};
+    if (!s.marks) s.marks = {};
+    if ((KM.has(s, "expelled") || KM.has(s, "fugitive_tv") || KM.has(s, "killed_tieu_hao")) && !KM.has(s, "tv_banned")) s.flags.push("tv_banned");
   };
   KM.validate = function (s) {
     if (!s || typeof s.level !== "number" || !s.base || !s.cur) return "Thiếu dữ liệu nhân vật.";
